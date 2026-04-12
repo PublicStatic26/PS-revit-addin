@@ -41,7 +41,10 @@ namespace PSRevitAddin
                     }
                 }
 
-                ribbonPanel ??= app.CreateRibbonPanel(TabName, PanelName);
+                if (ribbonPanel == null)
+                {
+                    ribbonPanel = app.CreateRibbonPanel(TabName, PanelName);
+                }
 
                 bool bFound = false;
                 foreach (RibbonItem item in ribbonPanel.GetItems())
