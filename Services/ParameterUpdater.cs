@@ -10,7 +10,7 @@ namespace PSRevitAddin.Services
     /// <summary>
     /// ⑥ 실제 패밀리 교체 + 파라미터 입력
     /// </summary>
-    internal class ParameterUpdater
+    public class ParameterUpdater
     {
     }
 }

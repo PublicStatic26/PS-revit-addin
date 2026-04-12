@@ -11,7 +11,7 @@ namespace PSRevitAddin.Services
     /// <summary>
     /// ③ Excel에서 제품 목록 조회
     /// </summary>
-    internal class ProductCatalog
+    public class ProductCatalog
     {
     }
 }
