@@ -51,6 +51,9 @@ namespace PSRevitAddin.Models
         public VendorProduct? SelectedProduct { get; set; }
 
         /// <summary>제품 선택 완료 여부</summary>
-        public bool IsProductSelected => SelectedProduct != null;
+        public bool IsProductSelected
+        {
+            get { return SelectedProduct != null; }
+        }
     }
 }
