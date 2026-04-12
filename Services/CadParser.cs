@@ -11,7 +11,7 @@ namespace PSRevitAddin.Services
     /// <summary>
     /// ① CAD에서 유형마크 + 좌표 추출
     /// </summary>
-    internal class CadParser
+    public class CadParser
     {
     }
 }

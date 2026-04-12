@@ -14,7 +14,7 @@ namespace PSRevitAddin.Models
     ///   ⑥ ParameterUpdater → 읽기 전용 (Revit 반영)
     ///   ⑦ ScheduleManager → 읽기 전용 (수량 집계)
     /// </summary>
-    internal class WindowUnit
+    public class WindowUnit
     {
         // ─── ① CAD에서 추출 ───────────────────────────────────────────
 
