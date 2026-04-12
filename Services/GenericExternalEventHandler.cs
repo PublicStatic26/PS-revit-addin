@@ -29,6 +29,9 @@ namespace PSRevitAddin.Services
             }
         }
 
-        public string GetName() => "PSRevitAddin.GenericExternalEventHandler";
+        public string GetName()
+        {
+            return "PSRevitAddin.GenericExternalEventHandler";
+        }
     }
 }
