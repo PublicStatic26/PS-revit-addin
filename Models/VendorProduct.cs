@@ -13,7 +13,7 @@ namespace PSRevitAddin.Models
     ///   ⑥ ParameterUpdater → FamilyPath 사용, 파라미터 값 Revit에 입력
     ///   ⑦ ScheduleManager → UnitPrice 사용, 수량×단가 집계
     /// </summary>
-    internal class VendorProduct
+    public class VendorProduct
     {
         // ─── 제조사 / 제품 식별 ───────────────────────────────────────
 
