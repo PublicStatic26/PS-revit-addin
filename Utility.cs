@@ -10,7 +10,7 @@ namespace PSRevitAddin
     /// <summary>
     /// 공통 유틸리티: 단위 변환, 문자열 파싱, 좌표 변환
     /// </summary>
-    internal static class Utility
+    public static class Utility
     {
         #region 단위 변환
         // Revit 내부 단위는 피트(feet). CAD/UI는 밀리미터(mm) 기준.

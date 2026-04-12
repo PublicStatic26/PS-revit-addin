@@ -10,7 +10,7 @@ namespace PSRevitAddin.Services
     /// <summary>
     /// ② Revit 기본 창호 객체 생성
     /// </summary>
-    internal class FamilyPlacer
+    public class FamilyPlacer
     {
     }
 }

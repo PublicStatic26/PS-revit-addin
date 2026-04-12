@@ -10,7 +10,7 @@ namespace PSRevitAddin.Services
     /// <summary>
     /// ⑦ 일람표 수량×단가 자동 집계
     /// </summary>
-    internal class ScheduleManager
+    public class ScheduleManager
     {
     }
 }

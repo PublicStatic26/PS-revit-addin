@@ -58,7 +58,7 @@ namespace PSRevitAddin.Forms
                 _externalEvent = null;
             }
         }
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)  // 이 코드 삭제 금지
         {
             try
             {

@@ -10,7 +10,7 @@ namespace PSRevitAddin.Services
     /// <summary>
     /// ④ 방화/단열/유리 조건 AND 필터
     /// </summary>
-    internal class ProductFilter
+    public class ProductFilter
     {
     }
 }
