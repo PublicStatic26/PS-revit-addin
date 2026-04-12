@@ -15,9 +15,15 @@ namespace PSRevitAddin
         #region 단위 변환
         // Revit 내부 단위는 피트(feet). CAD/UI는 밀리미터(mm) 기준.
 
-        public static double FeetToMm(double feet) => feet * 304.8;
+        public static double FeetToMm(double feet)
+        {
+            return feet * 304.8;
+        }
 
-        public static double MmToFeet(double mm) => mm / 304.8;
+        public static double MmToFeet(double mm)
+        {
+            return mm / 304.8;
+        }
 
         #endregion
 

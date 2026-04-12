@@ -3,7 +3,7 @@ namespace PSRevitAddin.Models
     /// <summary>
     /// 창호 / 문 구분
     /// </summary>
-    internal enum WindowType
+    public enum WindowType
     {
         Window, // 창호
         Door    // 문
@@ -12,7 +12,7 @@ namespace PSRevitAddin.Models
     /// <summary>
     /// 유리 종류 (MainForm comboBox2 기준)
     /// </summary>
-    internal enum GlassType
+    public enum GlassType
     {
         Vacuum,     // 진공유리
         Triple,     // 삼중유리
@@ -26,7 +26,7 @@ namespace PSRevitAddin.Models
     /// <summary>
     /// 창호 프레임 재질 (MainForm comboBox1 기준)
     /// </summary>
-    internal enum FrameType
+    public enum FrameType
     {
         Aluminum,    // 알루미늄
         AlPvc,       // AL+PVC
@@ -39,7 +39,7 @@ namespace PSRevitAddin.Models
     /// <summary>
     /// 개폐 방식 (MainForm comboBox3 기준)
     /// </summary>
-    internal enum OpeningMethod
+    public enum OpeningMethod
     {
         Fixed,          // 고정(Fix)창
         ProjectOut,     // 프로젝트창
