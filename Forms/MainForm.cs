@@ -30,10 +30,6 @@ namespace PSRevitAddin.Forms
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
             InitializeComboBoxes();
-
-            // Designer.cs에서 자동 연결되지 않은 이벤트를 직접 연결한다
-            checkBox2.CheckedChanged += checkBox2_CheckedChanged;
-            checkBox3.CheckedChanged += checkBox3_CheckedChanged;
         }
 
         /// <summary>
@@ -161,47 +157,6 @@ namespace PSRevitAddin.Forms
             try
             {
                 _productFilter.FilterFireRated = checkBox1.Checked;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
-        {
-            // 단열 조건
-            try
-            {
-                _productFilter.FilterInsulated = checkBox2.Checked;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void checkBox3_CheckedChanged(object sender, EventArgs e)
-        {
-            // 삼중유리 조건
-            // 체크 시 유리 조건을 삼중유리로 고정, 해제 시 콤보박스 선택값으로 되돌린다
-            try
-            {
-                if (checkBox3.Checked)
-                {
-                    _productFilter.SelectedGlass = GlassType.Triple;
-                }
-                else
-                {
-                    if (comboBox2.SelectedIndex >= 0)
-                    {
-                        _productFilter.SelectedGlass = (GlassType)comboBox2.SelectedIndex;
-                    }
-                    else
-                    {
-                        _productFilter.SelectedGlass = null;
-                    }
-                }
             }
             catch (Exception ex)
             {
