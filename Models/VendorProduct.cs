@@ -17,6 +17,9 @@ namespace PSRevitAddin.Models
     {
         // ─── 제조사 / 제품 식별 ───────────────────────────────────────
 
+        /// <summary>일람표 기호. 예: "WD-01"</summary>
+        public string SymbolCode {get; set;} = string.Empty;
+        
         /// <summary>제조사명. 예: "LG하우시스"</summary>
         public string VendorName { get; set; } = string.Empty;
 

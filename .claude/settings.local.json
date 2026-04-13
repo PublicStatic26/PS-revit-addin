@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Local Server/SAVE/**)",
+      "Read(//c/Local Server/SAVE/SAVE/**)"
+    ]
+  }
+}
