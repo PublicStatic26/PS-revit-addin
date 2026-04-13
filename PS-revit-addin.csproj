@@ -12,6 +12,7 @@
   <ItemGroup>
     <Compile Include="App.cs" />
     <Compile Include="Command.cs" />
+    <Compile Include="GenericExternalEventHandler.cs" />
     <Compile Include="Utility.cs" />
     <Compile Include="Forms\**\*.cs" />
     <Compile Include="Models\**\*.cs" />
