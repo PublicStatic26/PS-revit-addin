@@ -5,6 +5,7 @@ using PSRevitAddin.Models;
 using PSRevitAddin.Services;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using TaskDialog = Autodesk.Revit.UI.TaskDialog;
@@ -86,14 +87,6 @@ namespace PSRevitAddin.Forms
             comboBox6.Items.Add("PVC");
             comboBox6.Items.Add("복합 (Combination)");
 
-            // 제품 목록 ListView 컬럼 설정
-            //listView4.View = System.Windows.Forms.View.Details;
-            //listView4.FullRowSelect = true;
-            //listView4.Columns.Add("제조사", 75);
-            //listView4.Columns.Add("제품명", 90);
-            //listView4.Columns.Add("모델번호", 70);
-            //listView4.Columns.Add("단가(원)", 75);
-
             RefreshProductCards();
         }
 
@@ -103,22 +96,175 @@ namespace PSRevitAddin.Forms
         /// </summary>
         private void RefreshProductCards()
         {
-            var filtered = _productFilter.Apply(_catalog.GetAll());
-            //listView4.Items.Clear();
+            List<VendorProduct> filtered = _productFilter.Apply(_catalog.GetAll());
 
-            if (filtered.Count == 0)
+            flowLayoutPanel1.SuspendLayout();
+            flowLayoutPanel1.Controls.Clear();
+            flowLayoutPanel1.FlowDirection = FlowDirection.TopDown;
+            flowLayoutPanel1.AutoScroll = true;
+            flowLayoutPanel1.WrapContents = false;
+            flowLayoutPanel1.Padding = new Padding(4);
+
+            // 필터 결과를 제조사별로 그룹화
+            Dictionary<string, List<VendorProduct>> grouped = new Dictionary<string, List<VendorProduct>>();
+            foreach (VendorProduct product in filtered)
             {
-                //listView4.Items.Add(new ListViewItem("조건에 맞는 제품이 없습니다."));
-                return;
+                if (!grouped.ContainsKey(product.VendorName))
+                {
+                    grouped[product.VendorName] = new List<VendorProduct>();
+                }
+                grouped[product.VendorName].Add(product);
             }
 
-            foreach (var product in filtered)
+            // 제조사별 섹션 생성 (결과 없는 제조사는 자동으로 미표시)
+            foreach (KeyValuePair<string, List<VendorProduct>> entry in grouped)
             {
-                var item = new ListViewItem(product.VendorName);
-                item.SubItems.Add(product.ProductName);
-                item.SubItems.Add(product.ModelNumber);
-                item.SubItems.Add($"{product.UnitPrice:N0}");
-                //listView4.Items.Add(item);
+                Panel section = CreateVendorSection(entry.Key, entry.Value);
+                flowLayoutPanel1.Controls.Add(section);
+            }
+
+            flowLayoutPanel1.ResumeLayout();
+        }
+
+        /// <summary>
+        /// 제조사 이름과 제품 목록을 받아 헤더 + 제품 카드로 구성된 섹션 패널을 반환한다.
+        /// </summary>
+        private Panel CreateVendorSection(string vendorName, List<VendorProduct> products)
+        {
+            int sectionWidth = Math.Max(200, flowLayoutPanel1.ClientSize.Width - 16);
+            int headerHeight = 30;
+            int cardHeight = 88;
+            int cardGap = 4;
+            int sectionHeight = headerHeight + (products.Count * (cardHeight + cardGap)) + 8;
+
+            Panel section = new Panel();
+            section.Width = sectionWidth;
+            section.Height = sectionHeight;
+            section.Margin = new Padding(0, 0, 0, 10);
+            section.BorderStyle = BorderStyle.FixedSingle;
+
+            // 제조사 헤더
+            Label header = new Label();
+            header.Text = vendorName;
+            header.Location = new Point(0, 0);
+            header.Size = new Size(sectionWidth, headerHeight);
+            header.Font = new Font(this.Font, FontStyle.Bold);
+            header.BackColor = Color.SteelBlue;
+            header.ForeColor = Color.White;
+            header.TextAlign = ContentAlignment.MiddleLeft;
+            header.Padding = new Padding(8, 0, 0, 0);
+            section.Controls.Add(header);
+
+            // 제품 카드 (헤더 아래로 순서대로 배치)
+            int yOffset = headerHeight + 4;
+            foreach (VendorProduct product in products)
+            {
+                Panel card = CreateProductCard(product, sectionWidth - 8);
+                card.Location = new Point(4, yOffset);
+                section.Controls.Add(card);
+                yOffset += cardHeight + cardGap;
+            }
+
+            return section;
+        }
+
+        /// <summary>
+        /// 개별 제품 정보를 카드 형태의 패널로 반환한다.
+        /// </summary>
+        private Panel CreateProductCard(VendorProduct product, int width)
+        {
+            int cardHeight = 88;
+
+            Panel card = new Panel();
+            card.Width = width;
+            card.Height = cardHeight;
+            card.BackColor = Color.WhiteSmoke;
+            card.BorderStyle = BorderStyle.FixedSingle;
+
+            // 1행: 제품명 + 모델번호 + [방화] [단열] 뱃지
+            string badges = string.Empty;
+            if (product.IsFireRated) badges += "[방화] ";
+            if (product.IsInsulated) badges += "[단열]";
+
+            Label nameLabel = new Label();
+            nameLabel.Text = product.ProductName + "  " + product.ModelNumber + "  " + badges.Trim();
+            nameLabel.Location = new Point(8, 8);
+            nameLabel.Size = new Size(width - 16, 18);
+            nameLabel.Font = new Font(this.Font, FontStyle.Bold);
+            card.Controls.Add(nameLabel);
+
+            // 2행: 유리 종류 · 프레임 · 개폐방식
+            Label specLabel = new Label();
+            specLabel.Text = GlassTypeToKorean(product.GlassType)
+                + " · " + FrameTypeToKorean(product.FrameType)
+                + " · " + OpeningMethodToKorean(product.OpeningMethod);
+            specLabel.Location = new Point(8, 32);
+            specLabel.Size = new Size(width - 16, 18);
+            specLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(specLabel);
+
+            // 3행: 사이즈 범위 (왼쪽) + 단가 (오른쪽)
+            Label sizeLabel = new Label();
+            sizeLabel.Text = "W " + product.MinWidthMm.ToString("0") + "~" + product.MaxWidthMm.ToString("0")
+                + " × H " + product.MinHeightMm.ToString("0") + "~" + product.MaxHeightMm.ToString("0") + " mm";
+            sizeLabel.Location = new Point(8, 58);
+            sizeLabel.Size = new Size(width - 130, 18);
+            sizeLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(sizeLabel);
+
+            Label priceLabel = new Label();
+            priceLabel.Text = "₩ " + product.UnitPrice.ToString("N0");
+            priceLabel.Location = new Point(width - 122, 56);
+            priceLabel.Size = new Size(114, 20);
+            priceLabel.TextAlign = ContentAlignment.MiddleRight;
+            priceLabel.Font = new Font(this.Font, FontStyle.Bold);
+            priceLabel.ForeColor = Color.DarkBlue;
+            card.Controls.Add(priceLabel);
+
+            return card;
+        }
+
+        private string GlassTypeToKorean(GlassType glassType)
+        {
+            switch (glassType)
+            {
+                case GlassType.Vacuum:     return "진공유리";
+                case GlassType.Triple:     return "삼중유리";
+                case GlassType.Double:     return "복층유리";
+                case GlassType.Tempered:   return "강화유리";
+                case GlassType.LowE:       return "로이유리";
+                case GlassType.Reflective: return "반사유리";
+                case GlassType.Standard:   return "일반유리";
+                default:                   return glassType.ToString();
+            }
+        }
+
+        private string FrameTypeToKorean(FrameType frameType)
+        {
+            switch (frameType)
+            {
+                case FrameType.Aluminum:    return "알루미늄";
+                case FrameType.AlPvc:       return "AL+PVC";
+                case FrameType.Pvc:         return "PVC";
+                case FrameType.Combination: return "복합";
+                case FrameType.CurtainWall: return "커튼월";
+                case FrameType.Traditional: return "한식창";
+                default:                    return frameType.ToString();
+            }
+        }
+
+        private string OpeningMethodToKorean(OpeningMethod openingMethod)
+        {
+            switch (openingMethod)
+            {
+                case OpeningMethod.Fixed:           return "고정창";
+                case OpeningMethod.ProjectOut:      return "프로젝트창";
+                case OpeningMethod.CasementSwing:   return "여닫이창";
+                case OpeningMethod.Sliding:         return "슬라이딩창";
+                case OpeningMethod.TurnTilt:        return "턴앤틸트창";
+                case OpeningMethod.LiftSliding:     return "리프트슬라이딩창";
+                case OpeningMethod.ParallelSliding: return "패러럴슬라이딩창";
+                default:                            return openingMethod.ToString();
             }
         }
 
@@ -260,14 +406,8 @@ namespace PSRevitAddin.Forms
         private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
         {
             // 유리 종류 조건
-            // 삼중유리 체크박스가 체크된 상태면 콤보박스 선택은 무시한다
             try
             {
-                if (checkBox3.Checked)
-                {
-                    return;
-                }
-
                 _productFilter.SelectedGlass = comboBox2.SelectedIndex >= 0
                     ? (GlassType?)comboBox2.SelectedIndex
                     : null;
@@ -429,7 +569,16 @@ namespace PSRevitAddin.Forms
 
         private void checkBox6_CheckedChanged(object sender, EventArgs e)
         {
-            // 제조사 A
+            // 제조사 A (LG하우시스) 필터
+            try
+            {
+                ToggleVendorFilter("LG하우시스", checkBox6.Checked);
+                RefreshProductCards();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
@@ -444,12 +593,50 @@ namespace PSRevitAddin.Forms
 
         private void checkBox7_CheckedChanged(object sender, EventArgs e)
         {
-            // 제조사 B
+            // 제조사 B (KCC글라스) 필터
+            try
+            {
+                ToggleVendorFilter("KCC글라스", checkBox7.Checked);
+                RefreshProductCards();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void checkBox9_CheckedChanged(object sender, EventArgs e)
         {
-            // 제조사 C
+            // 제조사 C (현대L&C) 필터
+            try
+            {
+                ToggleVendorFilter("현대L&C", checkBox9.Checked);
+                RefreshProductCards();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// 제조사 이름을 SelectedVendors 목록에 추가하거나 제거한다.
+        /// checked=true이면 추가, false이면 제거.
+        /// 중복 추가는 방지한다.
+        /// </summary>
+        private void ToggleVendorFilter(string vendorName, bool isChecked)
+        {
+            if (isChecked)
+            {
+                if (!_productFilter.SelectedVendors.Contains(vendorName))
+                {
+                    _productFilter.SelectedVendors.Add(vendorName);
+                }
+            }
+            else
+            {
+                _productFilter.SelectedVendors.Remove(vendorName);
+            }
         }
 
         private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
