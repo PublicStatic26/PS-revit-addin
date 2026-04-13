@@ -18,6 +18,7 @@ namespace PSRevitAddin.Forms
         private GenericExternalEventHandler _eventHandler;
         private ExternalEvent? _externalEvent;
         private ProductFilter _productFilter;
+        private readonly ProductCatalog _catalog;
 
         public MainForm(UIApplication uiApp)
         {
@@ -27,6 +28,7 @@ namespace PSRevitAddin.Forms
             _eventHandler = new GenericExternalEventHandler();
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
+            _catalog = new ProductCatalog();
             InitializeComboBoxes();
         }
 
@@ -83,6 +85,41 @@ namespace PSRevitAddin.Forms
             comboBox6.Items.Add("AL + PVC");
             comboBox6.Items.Add("PVC");
             comboBox6.Items.Add("복합 (Combination)");
+
+            // 제품 목록 ListView 컬럼 설정
+            //listView4.View = System.Windows.Forms.View.Details;
+            //listView4.FullRowSelect = true;
+            //listView4.Columns.Add("제조사", 75);
+            //listView4.Columns.Add("제품명", 90);
+            //listView4.Columns.Add("모델번호", 70);
+            //listView4.Columns.Add("단가(원)", 75);
+
+            RefreshProductCards();
+        }
+
+        /// <summary>
+        /// 현재 필터 조건으로 제품 목록을 갱신한다.
+        /// 모든 필터 이벤트 핸들러 끝에서 호출한다.
+        /// </summary>
+        private void RefreshProductCards()
+        {
+            var filtered = _productFilter.Apply(_catalog.GetAll());
+            //listView4.Items.Clear();
+
+            if (filtered.Count == 0)
+            {
+                //listView4.Items.Add(new ListViewItem("조건에 맞는 제품이 없습니다."));
+                return;
+            }
+
+            foreach (var product in filtered)
+            {
+                var item = new ListViewItem(product.VendorName);
+                item.SubItems.Add(product.ProductName);
+                item.SubItems.Add(product.ModelNumber);
+                item.SubItems.Add($"{product.UnitPrice:N0}");
+                //listView4.Items.Add(item);
+            }
         }
 
         #region 단일쓰레드 안정성 확보
@@ -114,11 +151,11 @@ namespace PSRevitAddin.Forms
                 _externalEvent = null;
             }
         }
+
         private void button1_Click(object sender, EventArgs e)
         {
             try
             {
-
                 DozeOff();
                 _eventHandler.ActionToExecute = (app) =>
                 {
@@ -155,6 +192,48 @@ namespace PSRevitAddin.Forms
             try
             {
                 _productFilter.FilterFireRated = checkBox1.Checked;
+                RefreshProductCards();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            // 단열 조건
+            try
+            {
+                _productFilter.FilterInsulated = checkBox2.Checked;
+                RefreshProductCards();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            // 삼중유리 조건
+            // 체크 시 SelectedGlass를 Triple로 고정하고 comboBox2를 비활성화한다
+            // 해제 시 comboBox2 선택값으로 복원한다
+            try
+            {
+                if (checkBox3.Checked)
+                {
+                    _productFilter.SelectedGlass = GlassType.Triple;
+                    comboBox2.Enabled = false;
+                }
+                else
+                {
+                    comboBox2.Enabled = true;
+                    _productFilter.SelectedGlass = comboBox2.SelectedIndex >= 0
+                        ? (GlassType?)comboBox2.SelectedIndex
+                        : null;
+                }
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -167,14 +246,10 @@ namespace PSRevitAddin.Forms
             // 창호 프레임 조건
             try
             {
-                if (comboBox1.SelectedIndex >= 0)
-                {
-                    _productFilter.SelectedFrame = (FrameType)comboBox1.SelectedIndex;
-                }
-                else
-                {
-                    _productFilter.SelectedFrame = null;
-                }
+                _productFilter.SelectedFrame = comboBox1.SelectedIndex >= 0
+                    ? (FrameType?)comboBox1.SelectedIndex
+                    : null;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -193,14 +268,10 @@ namespace PSRevitAddin.Forms
                     return;
                 }
 
-                if (comboBox2.SelectedIndex >= 0)
-                {
-                    _productFilter.SelectedGlass = (GlassType)comboBox2.SelectedIndex;
-                }
-                else
-                {
-                    _productFilter.SelectedGlass = null;
-                }
+                _productFilter.SelectedGlass = comboBox2.SelectedIndex >= 0
+                    ? (GlassType?)comboBox2.SelectedIndex
+                    : null;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -213,14 +284,10 @@ namespace PSRevitAddin.Forms
             // 창호 개폐방식 조건
             try
             {
-                if (comboBox3.SelectedIndex >= 0)
-                {
-                    _productFilter.SelectedOpening = (OpeningMethod)comboBox3.SelectedIndex;
-                }
-                else
-                {
-                    _productFilter.SelectedOpening = null;
-                }
+                _productFilter.SelectedOpening = comboBox3.SelectedIndex >= 0
+                    ? (OpeningMethod?)comboBox3.SelectedIndex
+                    : null;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -233,17 +300,9 @@ namespace PSRevitAddin.Forms
             // 창호 너비(W) 입력
             try
             {
-                double width;
-                bool isValid = double.TryParse(textBox1.Text, out width);
-
-                if (isValid && width > 0)
-                {
-                    _productFilter.TargetWidthMm = width;
-                }
-                else
-                {
-                    _productFilter.TargetWidthMm = 0;
-                }
+                bool isValid = double.TryParse(textBox1.Text, out double width);
+                _productFilter.TargetWidthMm = isValid && width > 0 ? width : 0;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -256,17 +315,9 @@ namespace PSRevitAddin.Forms
             // 창호 높이(H) 입력
             try
             {
-                double height;
-                bool isValid = double.TryParse(textBox2.Text, out height);
-
-                if (isValid && height > 0)
-                {
-                    _productFilter.TargetHeightMm = height;
-                }
-                else
-                {
-                    _productFilter.TargetHeightMm = 0;
-                }
+                bool isValid = double.TryParse(textBox2.Text, out double height);
+                _productFilter.TargetHeightMm = isValid && height > 0 ? height : 0;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -280,23 +331,19 @@ namespace PSRevitAddin.Forms
         {
             // 도어 개폐방식 조건
             // comboBox4 항목은 OpeningMethod 중 일부(여닫이, 슬라이딩, 턴앤틸트)만 포함한다
-            OpeningMethod[] doorOpeningMethods = new OpeningMethod[]
-            {
+            OpeningMethod[] doorOpeningMethods =
+            [
                 OpeningMethod.CasementSwing,
                 OpeningMethod.Sliding,
                 OpeningMethod.TurnTilt
-            };
+            ];
 
             try
             {
-                if (comboBox4.SelectedIndex >= 0)
-                {
-                    _productFilter.SelectedOpening = doorOpeningMethods[comboBox4.SelectedIndex];
-                }
-                else
-                {
-                    _productFilter.SelectedOpening = null;
-                }
+                _productFilter.SelectedOpening = comboBox4.SelectedIndex >= 0
+                    ? doorOpeningMethods[comboBox4.SelectedIndex]
+                    : null;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -324,14 +371,10 @@ namespace PSRevitAddin.Forms
             // comboBox6 항목은 FrameType 중 앞 4개(Aluminum, AlPvc, Pvc, Combination)와 순서가 일치한다
             try
             {
-                if (comboBox6.SelectedIndex >= 0)
-                {
-                    _productFilter.SelectedFrame = (FrameType)comboBox6.SelectedIndex;
-                }
-                else
-                {
-                    _productFilter.SelectedFrame = null;
-                }
+                _productFilter.SelectedFrame = comboBox6.SelectedIndex >= 0
+                    ? (FrameType?)comboBox6.SelectedIndex
+                    : null;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -344,17 +387,9 @@ namespace PSRevitAddin.Forms
             // 문 너비(W) 입력
             try
             {
-                double width;
-                bool isValid = double.TryParse(textBox4.Text, out width);
-
-                if (isValid && width > 0)
-                {
-                    _productFilter.TargetWidthMm = width;
-                }
-                else
-                {
-                    _productFilter.TargetWidthMm = 0;
-                }
+                bool isValid = double.TryParse(textBox4.Text, out double width);
+                _productFilter.TargetWidthMm = isValid && width > 0 ? width : 0;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -367,17 +402,9 @@ namespace PSRevitAddin.Forms
             // 문 높이(H) 입력
             try
             {
-                double height;
-                bool isValid = double.TryParse(textBox3.Text, out height);
-
-                if (isValid && height > 0)
-                {
-                    _productFilter.TargetHeightMm = height;
-                }
-                else
-                {
-                    _productFilter.TargetHeightMm = 0;
-                }
+                bool isValid = double.TryParse(textBox3.Text, out double height);
+                _productFilter.TargetHeightMm = isValid && height > 0 ? height : 0;
+                RefreshProductCards();
             }
             catch (Exception ex)
             {
@@ -386,6 +413,16 @@ namespace PSRevitAddin.Forms
         }
 
         private void label8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
 
         }
@@ -415,19 +452,9 @@ namespace PSRevitAddin.Forms
             // 제조사 C
         }
 
-        private void checkBox3_CheckedChanged(object sender, EventArgs e)
-        {
-            //
-        }
-
         private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }
     }
 }
-
-
-
-
-
