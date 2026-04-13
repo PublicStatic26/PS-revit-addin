@@ -62,6 +62,7 @@
             textBox4 = new TextBox();
             tabPage3 = new TabPage();
             dataGridView1 = new DataGridView();
+            button4 = new Button();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -418,11 +419,22 @@
             dataGridView1.Size = new Size(560, 374);
             dataGridView1.TabIndex = 15;
             // 
-            // Main
+            // button4
+            // 
+            button4.Location = new Point(577, 367);
+            button4.Name = "button4";
+            button4.Size = new Size(93, 23);
+            button4.TabIndex = 15;
+            button4.Text = "TEST";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click_1;
+            // 
+            // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(682, 402);
+            Controls.Add(button4);
             Controls.Add(tabControl1);
             Controls.Add(button3);
             Controls.Add(button2);
@@ -476,5 +488,6 @@
         private Label label11;
         private CheckBox checkBox5;
         private CheckBox checkBox4;
+        private Button button4;
     }
 }

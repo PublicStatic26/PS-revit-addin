@@ -391,6 +391,40 @@ namespace PSRevitAddin.Forms
         {
 
         }
+
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            try
+            {
+                string dbPath = @"Z:\5조\창호DB.xlsx";
+
+                if (!File.Exists(dbPath))
+                {
+                    MessageBox.Show($"파일을 찾을 수 없습니다:\n{dbPath}", "파일 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var catalog = new ProductCatalog(dbPath);
+
+                catalog.CleanAndSave(); // 엑셀 정리 후 저장
+
+                var products = catalog.GetAllProducts();
+
+                if (products.Count == 0)
+                {
+                    MessageBox.Show("읽어온 제품이 없습니다. 엑셀 내용을 확인하세요.");
+                    return;
+                }
+
+                MessageBox.Show($"총 {products.Count}개 제품 읽어옴\n" +
+                                $"첫 번째: {products[0].VendorName} / {products[0].ProductName}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }
 
