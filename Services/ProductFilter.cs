@@ -30,7 +30,9 @@ namespace PSRevitAddin.Services
         public OpeningMethod? SelectedOpening { get; set; }
 
         /// <summary>방화 인증 필수 여부 (true면 방화 제품만 통과)</summary>
+       
         public bool FilterFireRated { get; set; }
+        
 
         /// <summary>단열 성능 필수 여부 (true면 단열 제품만 통과)</summary>
         public bool FilterInsulated { get; set; }
