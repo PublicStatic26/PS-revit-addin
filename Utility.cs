@@ -131,5 +131,8 @@ namespace PSRevitAddin
 
             return nearestWall;
         }
-
         #endregion
+    }
+}
+
+     

@@ -678,7 +678,14 @@ namespace PSRevitAddin.Forms
                 MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-        private void button2_Click(object sender, EventArgs e)
+
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
         {
             try
             {
@@ -696,17 +703,17 @@ namespace PSRevitAddin.Forms
 
                         CadParser parser = new CadParser(_doc, _cad);
                         List<CadWindowData> windowDatas = parser.ExtractWindowData();
-                        
+
                         if (windowDatas == null || windowDatas.Count == 0)
                         {
                             MessageBox.Show("캐드도면 없음", "알림");
                             trans.RollBack();
                             return;
                         }
-                        
+
                         FamilyPlacer placer = new FamilyPlacer(_doc);
                         int successCount = placer.PlaceWindows(windowDatas);
-                        
+
                         trans.Commit();
                         MessageBox.Show($"작업 완료! 총 {successCount}개의 패밀리가 성공적으로 배치되었습니다.", "성공");
                     }
@@ -725,11 +732,6 @@ namespace PSRevitAddin.Forms
             {
                 WakeUp();
             }
-        }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-
         }
     }
 }
