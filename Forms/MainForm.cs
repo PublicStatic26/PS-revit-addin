@@ -32,7 +32,7 @@ namespace PSRevitAddin.Forms
             _eventHandler = new GenericExternalEventHandler();
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
-            _catalog = new ProductCatalog();
+            _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
             InitializeComboBoxes();
         }
 
@@ -99,7 +99,7 @@ namespace PSRevitAddin.Forms
         /// </summary>
         private void RefreshProductCards()
         {
-            List<VendorProduct> filtered = _productFilter.Apply(_catalog.GetAll());
+            List<VendorProduct> filtered = _productFilter.Apply(_catalog.GetAllProducts());
 
             flowLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.Controls.Clear();
@@ -231,14 +231,14 @@ namespace PSRevitAddin.Forms
         {
             switch (glassType)
             {
-                case GlassType.Vacuum:     return "진공유리";
-                case GlassType.Triple:     return "삼중유리";
-                case GlassType.Double:     return "복층유리";
-                case GlassType.Tempered:   return "강화유리";
-                case GlassType.LowE:       return "로이유리";
+                case GlassType.Vacuum: return "진공유리";
+                case GlassType.Triple: return "삼중유리";
+                case GlassType.Double: return "복층유리";
+                case GlassType.Tempered: return "강화유리";
+                case GlassType.LowE: return "로이유리";
                 case GlassType.Reflective: return "반사유리";
-                case GlassType.Standard:   return "일반유리";
-                default:                   return glassType.ToString();
+                case GlassType.Standard: return "일반유리";
+                default: return glassType.ToString();
             }
         }
 
@@ -246,13 +246,13 @@ namespace PSRevitAddin.Forms
         {
             switch (frameType)
             {
-                case FrameType.Aluminum:    return "알루미늄";
-                case FrameType.AlPvc:       return "AL+PVC";
-                case FrameType.Pvc:         return "PVC";
+                case FrameType.Aluminum: return "알루미늄";
+                case FrameType.AlPvc: return "AL+PVC";
+                case FrameType.Pvc: return "PVC";
                 case FrameType.Combination: return "복합";
                 case FrameType.CurtainWall: return "커튼월";
                 case FrameType.Traditional: return "한식창";
-                default:                    return frameType.ToString();
+                default: return frameType.ToString();
             }
         }
 
@@ -260,14 +260,14 @@ namespace PSRevitAddin.Forms
         {
             switch (openingMethod)
             {
-                case OpeningMethod.Fixed:           return "고정창";
-                case OpeningMethod.ProjectOut:      return "프로젝트창";
-                case OpeningMethod.CasementSwing:   return "여닫이창";
-                case OpeningMethod.Sliding:         return "슬라이딩창";
-                case OpeningMethod.TurnTilt:        return "턴앤틸트창";
-                case OpeningMethod.LiftSliding:     return "리프트슬라이딩창";
+                case OpeningMethod.Fixed: return "고정창";
+                case OpeningMethod.ProjectOut: return "프로젝트창";
+                case OpeningMethod.CasementSwing: return "여닫이창";
+                case OpeningMethod.Sliding: return "슬라이딩창";
+                case OpeningMethod.TurnTilt: return "턴앤틸트창";
+                case OpeningMethod.LiftSliding: return "리프트슬라이딩창";
                 case OpeningMethod.ParallelSliding: return "패러럴슬라이딩창";
-                default:                            return openingMethod.ToString();
+                default: return openingMethod.ToString();
             }
         }
 
@@ -645,6 +645,36 @@ namespace PSRevitAddin.Forms
         private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string dbPath = @"Z:\5조\창호DB.xlsx";
+
+                if (!File.Exists(dbPath))
+                {
+                    MessageBox.Show($"파일을 찾을 수 없습니다:\n{dbPath}", "파일 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var catalog = new ProductCatalog(dbPath);
+                var products = catalog.GetAllProducts();
+
+                if (products.Count == 0)
+                {
+                    MessageBox.Show("읽어온 제품이 없습니다. 엑셀 내용을 확인하세요.");
+                    return;
+                }
+
+                MessageBox.Show($"총 {products.Count}개 제품 읽어옴\n" +
+                                $"첫 번째: {products[0].VendorName} / {products[0].ProductName}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

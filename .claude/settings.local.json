@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Local Server/SAVE/**)",
+      "Read(//c/Local Server/SAVE/SAVE/**)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)"
+    ]
+  }
+}
