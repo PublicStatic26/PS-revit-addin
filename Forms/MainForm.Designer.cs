@@ -72,6 +72,7 @@
             dataGridView1 = new DataGridView();
             button3 = new Button();
             button4 = new Button();
+            checkBox8 = new CheckBox();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -91,7 +92,7 @@
             // 
             // button2
             // 
-            button2.Location = new Point(872, 24);
+            button2.Location = new Point(872, 47);
             button2.Name = "button2";
             button2.Size = new Size(93, 23);
             button2.TabIndex = 1;
@@ -520,7 +521,7 @@
             // 
             // button3
             // 
-            button3.Location = new Point(872, 53);
+            button3.Location = new Point(872, 76);
             button3.Name = "button3";
             button3.Size = new Size(93, 23);
             button3.TabIndex = 31;
@@ -529,7 +530,7 @@
             // 
             // button4
             // 
-            button4.Location = new Point(872, 109);
+            button4.Location = new Point(872, 132);
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
@@ -537,11 +538,23 @@
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
+            // checkBox8
+            // 
+            checkBox8.AutoSize = true;
+            checkBox8.Location = new Point(872, 23);
+            checkBox8.Name = "checkBox8";
+            checkBox8.Size = new Size(74, 19);
+            checkBox8.TabIndex = 32;
+            checkBox8.Text = "벽체생성";
+            checkBox8.UseVisualStyleBackColor = true;
+            checkBox8.CheckedChanged += checkBox8_CheckedChanged;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(975, 582);
+            Controls.Add(checkBox8);
             Controls.Add(button3);
             Controls.Add(button4);
             Controls.Add(tabControl1);
@@ -558,6 +571,7 @@
             tabPage3.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -606,5 +620,6 @@
         private FlowLayoutPanel flowLayoutPanel1;
         private Button button4;
         private Label label12;
+        private CheckBox checkBox8;
     }
 }

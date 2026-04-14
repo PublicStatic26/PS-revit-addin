@@ -36,12 +36,13 @@ namespace PSRevitAddin.Services
         public OpeningMethod? SelectedOpening { get; set; }
 
         /// <summary>방화 인증 필수 여부 (true면 방화 제품만 통과)</summary>
-       
         public bool FilterFireRated { get; set; }
-        
 
         /// <summary>단열 성능 필수 여부 (true면 단열 제품만 통과)</summary>
         public bool FilterInsulated { get; set; }
+
+        /// <summary>자동 개폐 필수 여부 (true면 자동 개폐 제품만 통과)</summary>
+        public bool FilterAutoOpening { get; set; }
 
         // ─── 사이즈 조건 ──────────────────────────────────────────────
         // 0 = 미입력 (사이즈 조건 미적용)
@@ -78,6 +79,12 @@ namespace PSRevitAddin.Services
 
                 // 단열 조건
                 if (FilterInsulated && !product.IsInsulated)
+                {
+                    continue;
+                }
+
+                // 자동 개폐 조건
+                if (FilterAutoOpening && !product.IsAutoOpening)
                 {
                     continue;
                 }
@@ -133,6 +140,7 @@ namespace PSRevitAddin.Services
             SelectedOpening = null;
             FilterFireRated = false;
             FilterInsulated = false;
+            FilterAutoOpening = false;
             TargetWidthMm = 0;
             TargetHeightMm = 0;
         }

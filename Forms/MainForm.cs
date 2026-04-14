@@ -23,8 +23,8 @@ namespace PSRevitAddin.Forms
         private ExternalEvent? _externalEvent;
         private ProductFilter _productFilter;
         private readonly ProductCatalog _catalog;
-        private ImportInstance _cad;
-
+        private readonly List<VendorProduct> _allProducts;
+        private static readonly string[] VendorNames = { "Eagon", "LX Z:IN", "Jinheung" };
 
         public MainForm(UIApplication uiApp)
         {
@@ -35,7 +35,10 @@ namespace PSRevitAddin.Forms
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
             _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
+            _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
+            this.HandleCreated += (s, e) => RefreshProductCards();
+            flowLayoutPanel1.SizeChanged += (s, e) => RefreshProductCards();
         }
 
         /// <summary>
@@ -91,8 +94,6 @@ namespace PSRevitAddin.Forms
             comboBox6.Items.Add("AL + PVC");
             comboBox6.Items.Add("PVC");
             comboBox6.Items.Add("복합 (Combination)");
-
-            RefreshProductCards();
         }
 
         /// <summary>
@@ -101,30 +102,31 @@ namespace PSRevitAddin.Forms
         /// </summary>
         private void RefreshProductCards()
         {
-            List<VendorProduct> filtered = _productFilter.Apply(_catalog.GetAllProducts());
+            List<VendorProduct> filtered = _productFilter.Apply(_allProducts);
+
+            // 3사 고정 그룹 초기화
+            Dictionary<string, List<VendorProduct>> grouped = new Dictionary<string, List<VendorProduct>>();
+            foreach (string name in VendorNames)
+                grouped[name] = new List<VendorProduct>();
+            foreach (VendorProduct p in filtered)
+                if (grouped.ContainsKey(p.VendorName))
+                    grouped[p.VendorName].Add(p);
 
             flowLayoutPanel1.SuspendLayout();
             flowLayoutPanel1.Controls.Clear();
-            flowLayoutPanel1.FlowDirection = FlowDirection.TopDown;
-            flowLayoutPanel1.AutoScroll = true;
+            flowLayoutPanel1.FlowDirection = FlowDirection.LeftToRight;
             flowLayoutPanel1.WrapContents = false;
-            flowLayoutPanel1.Padding = new Padding(4);
+            flowLayoutPanel1.AutoScroll = false;
+            flowLayoutPanel1.Padding = new Padding(0);
 
-            // 필터 결과를 제조사별로 그룹화
-            Dictionary<string, List<VendorProduct>> grouped = new Dictionary<string, List<VendorProduct>>();
-            foreach (VendorProduct product in filtered)
-            {
-                if (!grouped.ContainsKey(product.VendorName))
-                {
-                    grouped[product.VendorName] = new List<VendorProduct>();
-                }
-                grouped[product.VendorName].Add(product);
-            }
+            int totalH = flowLayoutPanel1.ClientSize.Height > 100 ? flowLayoutPanel1.ClientSize.Height : 548;
+            int totalW = flowLayoutPanel1.ClientSize.Width > 100 ? flowLayoutPanel1.ClientSize.Width : 674;
+            int secW = (totalW - VendorNames.Length * 4) / VendorNames.Length;
+            int secH = totalH - 4;
 
-            // 제조사별 섹션 생성 (결과 없는 제조사는 자동으로 미표시)
-            foreach (KeyValuePair<string, List<VendorProduct>> entry in grouped)
+            foreach (string vendorName in VendorNames)
             {
-                Panel section = CreateVendorSection(entry.Key, entry.Value);
+                Panel section = CreateVendorSection(vendorName, grouped[vendorName], secW, secH);
                 flowLayoutPanel1.Controls.Add(section);
             }
 
@@ -134,25 +136,23 @@ namespace PSRevitAddin.Forms
         /// <summary>
         /// 제조사 이름과 제품 목록을 받아 헤더 + 제품 카드로 구성된 섹션 패널을 반환한다.
         /// </summary>
-        private Panel CreateVendorSection(string vendorName, List<VendorProduct> products)
+        private Panel CreateVendorSection(string vendorName, List<VendorProduct> products, int width, int height)
         {
-            int sectionWidth = Math.Max(200, flowLayoutPanel1.ClientSize.Width - 16);
-            int headerHeight = 30;
-            int cardHeight = 88;
-            int cardGap = 4;
-            int sectionHeight = headerHeight + (products.Count * (cardHeight + cardGap)) + 8;
+            const int headerH = 28;
+            const int cardH = 88;
+            const int cardGap = 4;
 
             Panel section = new Panel();
-            section.Width = sectionWidth;
-            section.Height = sectionHeight;
-            section.Margin = new Padding(0, 0, 0, 10);
+            section.Width = width;
+            section.Height = height;
+            section.Margin = new Padding(2, 2, 2, 2);
             section.BorderStyle = BorderStyle.FixedSingle;
 
             // 제조사 헤더
             Label header = new Label();
             header.Text = vendorName;
             header.Location = new Point(0, 0);
-            header.Size = new Size(sectionWidth, headerHeight);
+            header.Size = new Size(width, headerH);
             header.Font = new Font(this.Font, FontStyle.Bold);
             header.BackColor = Color.SteelBlue;
             header.ForeColor = Color.White;
@@ -160,16 +160,22 @@ namespace PSRevitAddin.Forms
             header.Padding = new Padding(8, 0, 0, 0);
             section.Controls.Add(header);
 
-            // 제품 카드 (헤더 아래로 순서대로 배치)
-            int yOffset = headerHeight + 4;
+            // 제품 카드 스크롤 영역
+            Panel scrollArea = new Panel();
+            scrollArea.Location = new Point(0, headerH);
+            scrollArea.Size = new Size(width, height - headerH);
+            scrollArea.AutoScroll = true;
+
+            int yOffset = 4;
             foreach (VendorProduct product in products)
             {
-                Panel card = CreateProductCard(product, sectionWidth - 8);
+                Panel card = CreateProductCard(product, width - SystemInformation.VerticalScrollBarWidth - 8);
                 card.Location = new Point(4, yOffset);
-                section.Controls.Add(card);
-                yOffset += cardHeight + cardGap;
+                scrollArea.Controls.Add(card);
+                yOffset += cardH + cardGap;
             }
 
+            section.Controls.Add(scrollArea);
             return section;
         }
 
@@ -302,11 +308,11 @@ namespace PSRevitAddin.Forms
                 _externalEvent = null;
             }
         }
+
         private void button1_Click(object sender, EventArgs e)
         {
             try
             {
-
                 DozeOff();
                 _eventHandler.ActionToExecute = (app) =>
                 {
@@ -367,23 +373,10 @@ namespace PSRevitAddin.Forms
 
         private void checkBox3_CheckedChanged(object sender, EventArgs e)
         {
-            // 삼중유리 조건
-            // 체크 시 SelectedGlass를 Triple로 고정하고 comboBox2를 비활성화한다
-            // 해제 시 comboBox2 선택값으로 복원한다
+            // 자동 개폐 조건
             try
             {
-                if (checkBox3.Checked)
-                {
-                    _productFilter.SelectedGlass = GlassType.Triple;
-                    comboBox2.Enabled = false;
-                }
-                else
-                {
-                    comboBox2.Enabled = true;
-                    _productFilter.SelectedGlass = comboBox2.SelectedIndex >= 0
-                        ? (GlassType?)comboBox2.SelectedIndex
-                        : null;
-                }
+                _productFilter.FilterAutoOpening = checkBox3.Checked;
                 RefreshProductCards();
             }
             catch (Exception ex)
@@ -557,27 +550,19 @@ namespace PSRevitAddin.Forms
             }
         }
 
-        private void label8_Click(object sender, EventArgs e)
-        {
 
-        }
-
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
-
+            // 3사 비교표
         }
 
         private void checkBox6_CheckedChanged(object sender, EventArgs e)
         {
-            // 제조사 A (LG하우시스) 필터
+            // 제조사 A 필터
             try
             {
-                ToggleVendorFilter("LG하우시스", checkBox6.Checked);
+                ToggleVendorFilter("Eagon", checkBox6.Checked);
                 RefreshProductCards();
             }
             catch (Exception ex)
@@ -598,10 +583,10 @@ namespace PSRevitAddin.Forms
 
         private void checkBox7_CheckedChanged(object sender, EventArgs e)
         {
-            // 제조사 B (KCC글라스) 필터
+            // 제조사 B 필터
             try
             {
-                ToggleVendorFilter("KCC글라스", checkBox7.Checked);
+                ToggleVendorFilter("LX Z:IN", checkBox7.Checked);
                 RefreshProductCards();
             }
             catch (Exception ex)
@@ -612,10 +597,10 @@ namespace PSRevitAddin.Forms
 
         private void checkBox9_CheckedChanged(object sender, EventArgs e)
         {
-            // 제조사 C (현대L&C) 필터
+            // 제조사 C 필터
             try
             {
-                ToggleVendorFilter("현대L&C", checkBox9.Checked);
+                ToggleVendorFilter("Jinheung", checkBox9.Checked);
                 RefreshProductCards();
             }
             catch (Exception ex)
@@ -680,10 +665,13 @@ namespace PSRevitAddin.Forms
         }
 
 
-        private void MainForm_Load(object sender, EventArgs e)
-        {
 
-        }
+
+
+        private void MainForm_Load(object sender, EventArgs e)
+                {
+
+                }
 
         private void button2_Click_1(object sender, EventArgs e)
         {
@@ -696,7 +684,7 @@ namespace PSRevitAddin.Forms
                     Document doc = app.ActiveUIDocument.Document;
 
                     Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
-
+                    Element selectCadLink = doc.GetElement()
                     using (Transaction trans = new Transaction(doc, "CAD 창호 배치"))
                     {
                         trans.Start();
@@ -732,6 +720,18 @@ namespace PSRevitAddin.Forms
             {
                 WakeUp();
             }
+        }
+
+        private void checkBox8_CheckedChanged(object sender, EventArgs e)
+        {
+            //if (checkBox8.Checked) 
+            //{
+            //    m_Visible = true;  
+            //}
+            //else
+            //{
+            //    m_Visible = false;
+            //}
         }
     }
 }

@@ -112,9 +112,6 @@ namespace PSRevitAddin
                 Curve curve = wallLocation.Curve;
                 if (curve == null) continue;
 
-                // 곡선 위의 가장 가까운 거리 계산
-                // Revit에서는 곡선 위의 정확한 가장 가까운 점을 직접 구하기 위해
-                // 끝점들 중 더 가까운 점을 기준으로 거리를 계산
                 XYZ p1 = curve.GetEndPoint(0);
                 XYZ p2 = curve.GetEndPoint(1);
 
