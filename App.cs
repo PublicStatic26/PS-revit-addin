@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 
@@ -24,6 +25,28 @@ namespace PSRevitAddin
         public Result OnStartup(UIControlledApplication app)
         {
             UIControlApp = app;
+
+            // Revit이 NuGet DLL을 못 찾을 때 애드인 폴더에서 직접 로드
+            string addInDir = Path.GetDirectoryName(typeof(App).Assembly.Location)!;
+
+            // 이 애드인을 로드한 AssemblyLoadContext에 리졸버 등록
+            var loadContext = AssemblyLoadContext.GetLoadContext(typeof(App).Assembly);
+            if (loadContext != null)
+            {
+                loadContext.Resolving += (context, assemblyName) =>
+                {
+                    string path = Path.Combine(addInDir, assemblyName.Name + ".dll");
+                    return File.Exists(path) ? context.LoadFromAssemblyPath(path) : null;
+                };
+            }
+
+            // 혹시 Default 컨텍스트에서도 못 찾을 경우 대비
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                string assemblyName = new AssemblyName(args.Name).Name!;
+                string path = Path.Combine(addInDir, assemblyName + ".dll");
+                return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+            };
 
             try
             {
