@@ -65,25 +65,37 @@ namespace PSRevitAddin.Services
 
         // ── 메인 ────────────────────────────────────────────────────────────
 
+        // 창호를 생성하기 전에 개폐방식에 따라서 필터를 건다. 선택된 방식에 따라서 생성이 된다.
         public void UpdateFamilyType(List<VendorProduct> products)
         {
-            var collector = new FilteredElementCollector(_doc)
-                .OfClass(typeof(FamilySymbol))
-                .Cast<FamilySymbol>()
-                .Where(s => s.FamilyName == "WINDOW-어셈블")
-                .ToList();
-
             using (var trans = new Transaction(_doc, "창호 타입 생성"))
             {
                 trans.Start();
 
                 foreach (var product in products)
                 {
+                    // 개폐방식별 패밀리 선택
+                    var familyName = product.OpeningMethod switch
+                    {
+                        OpeningMethod.CasementSwing => "WINDOW_여닫이창",
+                        OpeningMethod.Fixed => "WINDOW_고정창",
+                        OpeningMethod.Sliding => "WINDOW_슬라이딩창",
+                        OpeningMethod.ProjectOut => "WINDOW_프로젝트창",
+                        _                        => "WINDOW_고정창"
+
+                    };
+
+                    // 해당 패밀리 심볼 찾기
+                    var collector = new FilteredElementCollector(_doc)
+                        .OfClass(typeof(FamilySymbol))
+                        .Cast<FamilySymbol>()
+                        .Where(s => s.FamilyName == familyName)
+                        .ToList();
+
                     string typeName = product.SymbolCode;
 
                     // 기존 타입 찾기
                     var existing = collector.FirstOrDefault(s => s.Name == typeName);
-
                     FamilySymbol symbol;
 
                     if (existing == null)
@@ -92,7 +104,7 @@ namespace PSRevitAddin.Services
                         if (baseSymbol == null) continue;
 
                         symbol = baseSymbol.Duplicate(typeName) as FamilySymbol;
-                        if (symbol != null) collector.Add(symbol); // 다음 루프에서도 찾을 수 있도록
+                        if (symbol != null) collector.Add(symbol);
                     }
                     else
                     {
@@ -115,7 +127,7 @@ namespace PSRevitAddin.Services
                     symbol.LookupParameter("방화")?.Set(product.IsFireRated ? 1 : 0);
                     symbol.LookupParameter("단열")?.Set(product.IsInsulated ? 1 : 0);
 
-                    // ── 치수 파라미터 (mm → Feet 변환) ──────────────────────
+                    // ── 치수 파라미터 (feet → mm 변환) ──────────────────────
                     symbol.LookupParameter("폭")?.Set(product.MaxWidthMm / 304.8);
                     symbol.LookupParameter("높이")?.Set(product.MaxHeightMm / 304.8);
                     symbol.LookupParameter("최소 폭")?.Set(product.MinWidthMm / 304.8);
