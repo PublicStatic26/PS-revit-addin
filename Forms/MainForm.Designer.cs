@@ -39,6 +39,7 @@
             checkBox3 = new CheckBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
+            flowLayoutPanel1 = new FlowLayoutPanel();
             checkBox9 = new CheckBox();
             label14 = new Label();
             textBox5 = new TextBox();
@@ -69,7 +70,7 @@
             textBox4 = new TextBox();
             tabPage3 = new TabPage();
             dataGridView1 = new DataGridView();
-            flowLayoutPanel1 = new FlowLayoutPanel();
+            button4 = new Button();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -209,6 +210,15 @@
             tabPage1.Text = "Window";
             tabPage1.UseVisualStyleBackColor = true;
             // 
+            // flowLayoutPanel1
+            // 
+            flowLayoutPanel1.Dock = DockStyle.Right;
+            flowLayoutPanel1.Location = new Point(194, 3);
+            flowLayoutPanel1.Name = "flowLayoutPanel1";
+            flowLayoutPanel1.Size = new Size(653, 548);
+            flowLayoutPanel1.TabIndex = 15;
+            flowLayoutPanel1.Paint += flowLayoutPanel1_Paint;
+            // 
             // checkBox9
             // 
             checkBox9.AutoSize = true;
@@ -316,7 +326,13 @@
             textBox1.Text = "0";
             textBox1.TextAlign = HorizontalAlignment.Center;
             textBox1.TextChanged += textBox1_TextChanged;
-            
+            // 
+            // label3
+            // 
+            label3.Location = new Point(0, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(100, 23);
+            label3.TabIndex = 34;
             // 
             // comboBox3
             // 
@@ -500,20 +516,22 @@
             dataGridView1.Size = new Size(850, 554);
             dataGridView1.TabIndex = 15;
             // 
-            // flowLayoutPanel1
+            // button4
             // 
-            flowLayoutPanel1.Dock = DockStyle.Right;
-            flowLayoutPanel1.Location = new Point(194, 3);
-            flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(653, 548);
-            flowLayoutPanel1.TabIndex = 15;
-            flowLayoutPanel1.Paint += flowLayoutPanel1_Paint;
+            button4.Location = new Point(864, 547);
+            button4.Name = "button4";
+            button4.Size = new Size(93, 23);
+            button4.TabIndex = 15;
+            button4.Text = "button4";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(967, 582);
+            Controls.Add(button4);
             Controls.Add(tabControl1);
             Controls.Add(button1);
             Name = "MainForm";
@@ -573,5 +591,6 @@
         private CheckBox checkBox9;
         private Button button3;
         private FlowLayoutPanel flowLayoutPanel1;
+        private Button button4;
     }
 }
