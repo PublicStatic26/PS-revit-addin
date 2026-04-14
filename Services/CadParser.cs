@@ -44,7 +44,6 @@ namespace PSRevitAddin.Services
             var detailLines = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(CurveElement)).Cast<CurveElement>().Where(x => x.LineStyle.Name.Contains("창호선")).ToList();
             var textNotes = new FilteredElementCollector(_doc, _doc.ActiveView.Id) .OfClass(typeof(TextNote)) .Cast<TextNote>() .Where(x => x.TextNoteType.Name.Contains("창호텍스트")).ToList();
 
-
             foreach (var lineElement in detailLines)
             {
                 Curve curve = lineElement.GeometryCurve;

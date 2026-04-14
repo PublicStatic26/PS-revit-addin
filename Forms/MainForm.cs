@@ -1,3 +1,4 @@
+
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -23,7 +24,8 @@ namespace PSRevitAddin.Forms
         private ExternalEvent? _externalEvent;
         private ProductFilter _productFilter;
         private readonly ProductCatalog _catalog;
-        private readonly List<VendorProduct> _allProducts;
+        private List<VendorProduct> _allProducts = new List<VendorProduct>();
+
         private static readonly string[] VendorNames = { "Eagon", "LX Z:IN", "Jinheung" };
 
         public MainForm(UIApplication uiApp)
@@ -35,10 +37,7 @@ namespace PSRevitAddin.Forms
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
             _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
-            _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
-            this.HandleCreated += (s, e) => RefreshProductCards();
-            flowLayoutPanel1.SizeChanged += (s, e) => RefreshProductCards();
         }
 
         /// <summary>
@@ -94,6 +93,8 @@ namespace PSRevitAddin.Forms
             comboBox6.Items.Add("AL + PVC");
             comboBox6.Items.Add("PVC");
             comboBox6.Items.Add("복합 (Combination)");
+
+            RefreshProductCards();
         }
 
         /// <summary>
@@ -550,7 +551,7 @@ namespace PSRevitAddin.Forms
             }
         }
 
-
+       
 
         private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
@@ -642,7 +643,7 @@ namespace PSRevitAddin.Forms
 
                 if (!File.Exists(dbPath))
                 {
-                    MessageBox.Show($"파일을 찾을 수 없습니다:\n{dbPath}", "파일 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("파일을 찾을 수 없습니다.");
                     return;
                 }
 
@@ -684,12 +685,17 @@ namespace PSRevitAddin.Forms
                     Document doc = app.ActiveUIDocument.Document;
 
                     Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
-                    Element selectCadLink = doc.GetElement()
+                    if (doc.GetElement(pickref.ElementId) is not ImportInstance selectCadLink)
+                    {
+                        MessageBox.Show("선택한 요소가 CAD 링크가 아닙니다.", "알림");
+                        return;
+                    }
+
                     using (Transaction trans = new Transaction(doc, "CAD 창호 배치"))
                     {
                         trans.Start();
 
-                        CadParser parser = new CadParser(_doc, _cad);
+                        CadParser parser = new CadParser(doc, selectCadLink);
                         List<CadWindowData> windowDatas = parser.ExtractWindowData();
 
                         if (windowDatas == null || windowDatas.Count == 0)

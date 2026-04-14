@@ -1,4 +1,4 @@
-﻿namespace PSRevitAddin.Forms
+namespace PSRevitAddin.Forms
 {
     partial class MainForm
     {
@@ -534,7 +534,7 @@
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
-            button4.Text = "button4";
+            button4.Text = "생성기";
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
@@ -559,7 +559,6 @@
             Controls.Add(button4);
             Controls.Add(tabControl1);
             Controls.Add(button1);
-            Controls.Add(button2);
             Name = "MainForm";
             Text = "PS 창호설계";
             FormClosing += MainForm_FormClosing;
@@ -622,4 +621,5 @@
         private Label label12;
         private CheckBox checkBox8;
     }
+
 }
