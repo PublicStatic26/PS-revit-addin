@@ -315,30 +315,39 @@ namespace PSRevitAddin.Services
 
         private static OpeningMethod ParseOpening(string val) => val switch
         {
-            "고정창" => OpeningMethod.Fixed,
-            "슬라이딩" => OpeningMethod.Sliding,
-            "프로젝트" => OpeningMethod.ProjectOut,
-            "여닫이" => OpeningMethod.CasementSwing,
+
+            "고정창"       => OpeningMethod.Fixed,
+            "프로젝트"     => OpeningMethod.ProjectOut,
+            "여닫이"       => OpeningMethod.CasementSwing,
+            "슬라이딩"     => OpeningMethod.Sliding,
+            "턴앤틸트"     => OpeningMethod.TurnTilt,
+            "리프트슬라이딩" => OpeningMethod.LiftSliding,
+            "패러럴슬라이딩" => OpeningMethod.ParallelSliding,
+
             _ => OpeningMethod.Fixed
         };
 
         private static FrameType ParseFrame(string val) => val switch
         {
             "알루미늄" => FrameType.Aluminum,
-            "PVC" => FrameType.Pvc,
+
             "AL+PVC" => FrameType.AlPvc,
-            "복합" => FrameType.Combination,
-            "커튼월" => FrameType.CurtainWall,
+            "PVC"    => FrameType.Pvc,
+            "복합"    => FrameType.Combination,
+            "커튼월"  => FrameType.CurtainWall,
+            "한식창"  => FrameType.Traditional,
+
             _ => FrameType.Aluminum
         };
 
         private static GlassType ParseGlass(string val) => val switch
         {
-            "로이유리" => GlassType.LowE,
-            "복층유리" => GlassType.Double,
-            "삼중유리" => GlassType.Triple,
             "진공유리" => GlassType.Vacuum,
+            "삼중유리" => GlassType.Triple,
+            "복층유리" => GlassType.Double,
             "강화유리" => GlassType.Tempered,
+            "로이유리" => GlassType.LowE,
+            "반사유리" => GlassType.Reflective,
             _ => GlassType.Standard
         };
     }
