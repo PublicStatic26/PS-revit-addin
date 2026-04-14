@@ -39,6 +39,7 @@
             checkBox3 = new CheckBox();
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
+            label12 = new Label();
             flowLayoutPanel1 = new FlowLayoutPanel();
             checkBox9 = new CheckBox();
             label14 = new Label();
@@ -54,7 +55,6 @@
             label3 = new Label();
             comboBox3 = new ComboBox();
             tabPage2 = new TabPage();
-            button3 = new Button();
             checkBox5 = new CheckBox();
             checkBox4 = new CheckBox();
             label11 = new Label();
@@ -70,8 +70,8 @@
             textBox4 = new TextBox();
             tabPage3 = new TabPage();
             dataGridView1 = new DataGridView();
+            button3 = new Button();
             button4 = new Button();
-            label12 = new Label();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -81,7 +81,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(864, 547);
+            button1.Location = new Point(872, 547);
             button1.Name = "button1";
             button1.Size = new Size(93, 23);
             button1.TabIndex = 0;
@@ -91,7 +91,7 @@
             // 
             // button2
             // 
-            button2.Location = new Point(864, 24);
+            button2.Location = new Point(872, 24);
             button2.Name = "button2";
             button2.Size = new Size(93, 23);
             button2.TabIndex = 1;
@@ -119,7 +119,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(10, 365);
+            label1.Location = new Point(10, 363);
             label1.Name = "label1";
             label1.Size = new Size(67, 15);
             label1.TabIndex = 5;
@@ -128,7 +128,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(10, 423);
+            label2.Location = new Point(10, 421);
             label2.Name = "label2";
             label2.Size = new Size(55, 15);
             label2.TabIndex = 6;
@@ -137,7 +137,7 @@
             // checkBox1
             // 
             checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(93, 272);
+            checkBox1.Location = new Point(90, 272);
             checkBox1.Name = "checkBox1";
             checkBox1.Size = new Size(50, 19);
             checkBox1.TabIndex = 9;
@@ -148,7 +148,7 @@
             // checkBox2
             // 
             checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(93, 297);
+            checkBox2.Location = new Point(90, 297);
             checkBox2.Name = "checkBox2";
             checkBox2.Size = new Size(50, 19);
             checkBox2.TabIndex = 10;
@@ -159,11 +159,11 @@
             // checkBox3
             // 
             checkBox3.AutoSize = true;
-            checkBox3.Location = new Point(93, 322);
+            checkBox3.Location = new Point(90, 322);
             checkBox3.Name = "checkBox3";
             checkBox3.Size = new Size(74, 19);
             checkBox3.TabIndex = 11;
-            checkBox3.Text = "어떤옵션";
+            checkBox3.Text = "전동개폐";
             checkBox3.UseVisualStyleBackColor = true;
             checkBox3.CheckedChanged += checkBox3_CheckedChanged;
             // 
@@ -176,7 +176,7 @@
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(858, 582);
+            tabControl1.Size = new Size(866, 582);
             tabControl1.TabIndex = 14;
             // 
             // tabPage1
@@ -206,18 +206,29 @@
             tabPage1.Location = new Point(4, 24);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
-            tabPage1.Size = new Size(850, 554);
+            tabPage1.Size = new Size(858, 554);
             tabPage1.TabIndex = 0;
             tabPage1.Text = "Window";
             tabPage1.UseVisualStyleBackColor = true;
             // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(10, 482);
+            label12.Name = "label12";
+            label12.Size = new Size(55, 15);
+            label12.TabIndex = 35;
+            label12.Text = "개폐방식";
+            // 
             // flowLayoutPanel1
             // 
+            flowLayoutPanel1.AutoScroll = true;
             flowLayoutPanel1.Dock = DockStyle.Right;
-            flowLayoutPanel1.Location = new Point(173, 3);
+            flowLayoutPanel1.Location = new Point(181, 3);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(674, 548);
             flowLayoutPanel1.TabIndex = 15;
+            flowLayoutPanel1.WrapContents = false;
             flowLayoutPanel1.Paint += flowLayoutPanel1_Paint;
             // 
             // checkBox9
@@ -227,7 +238,7 @@
             checkBox9.Name = "checkBox9";
             checkBox9.Size = new Size(74, 19);
             checkBox9.TabIndex = 33;
-            checkBox9.Text = "제조사 C";
+            checkBox9.Text = "Jinheung";
             checkBox9.UseVisualStyleBackColor = true;
             checkBox9.CheckedChanged += checkBox9_CheckedChanged;
             // 
@@ -273,9 +284,9 @@
             checkBox7.AutoSize = true;
             checkBox7.Location = new Point(13, 297);
             checkBox7.Name = "checkBox7";
-            checkBox7.Size = new Size(73, 19);
+            checkBox7.Size = new Size(65, 19);
             checkBox7.TabIndex = 20;
-            checkBox7.Text = "제조사 B";
+            checkBox7.Text = "LX Z:IN";
             checkBox7.UseVisualStyleBackColor = true;
             checkBox7.CheckedChanged += checkBox7_CheckedChanged;
             // 
@@ -284,9 +295,9 @@
             checkBox6.AutoSize = true;
             checkBox6.Location = new Point(13, 272);
             checkBox6.Name = "checkBox6";
-            checkBox6.Size = new Size(74, 19);
+            checkBox6.Size = new Size(59, 19);
             checkBox6.TabIndex = 19;
-            checkBox6.Text = "제조사 A";
+            checkBox6.Text = "Eagon";
             checkBox6.UseVisualStyleBackColor = true;
             checkBox6.CheckedChanged += checkBox6_CheckedChanged;
             // 
@@ -362,19 +373,10 @@
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new Padding(3);
-            tabPage2.Size = new Size(850, 554);
+            tabPage2.Size = new Size(858, 554);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Door";
             tabPage2.UseVisualStyleBackColor = true;
-            // 
-            // button3
-            // 
-            button3.Location = new Point(864, 53);
-            button3.Name = "button3";
-            button3.Size = new Size(93, 23);
-            button3.TabIndex = 31;
-            button3.Text = "Create Door";
-            button3.UseVisualStyleBackColor = true;
             // 
             // checkBox5
             // 
@@ -413,7 +415,6 @@
             label8.Size = new Size(55, 15);
             label8.TabIndex = 27;
             label8.Text = "개폐방식";
-            label8.Click += label8_Click;
             // 
             // comboBox4
             // 
@@ -502,7 +503,7 @@
             tabPage3.Controls.Add(dataGridView1);
             tabPage3.Location = new Point(4, 24);
             tabPage3.Name = "tabPage3";
-            tabPage3.Size = new Size(850, 554);
+            tabPage3.Size = new Size(858, 554);
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Utility";
             tabPage3.UseVisualStyleBackColor = true;
@@ -513,12 +514,21 @@
             dataGridView1.Dock = DockStyle.Fill;
             dataGridView1.Location = new Point(0, 0);
             dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(850, 554);
+            dataGridView1.Size = new Size(858, 554);
             dataGridView1.TabIndex = 15;
+            // 
+            // button3
+            // 
+            button3.Location = new Point(872, 53);
+            button3.Name = "button3";
+            button3.Size = new Size(93, 23);
+            button3.TabIndex = 31;
+            button3.Text = "Create Door";
+            button3.UseVisualStyleBackColor = true;
             // 
             // button4
             // 
-            button4.Location = new Point(864, 109);
+            button4.Location = new Point(872, 109);
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
@@ -526,20 +536,11 @@
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
-            // label12
-            // 
-            label12.AutoSize = true;
-            label12.Location = new Point(10, 484);
-            label12.Name = "label12";
-            label12.Size = new Size(55, 15);
-            label12.TabIndex = 35;
-            label12.Text = "개폐방식";
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(967, 582);
+            ClientSize = new Size(975, 582);
             Controls.Add(button3);
             Controls.Add(button4);
             Controls.Add(tabControl1);
