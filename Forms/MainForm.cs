@@ -9,6 +9,9 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using TaskDialog = Autodesk.Revit.UI.TaskDialog;
+using Panel = System.Windows.Forms.Panel;
+using Color = System.Drawing.Color;
+using Point = System.Drawing.Point;
 
 namespace PSRevitAddin.Forms
 {
