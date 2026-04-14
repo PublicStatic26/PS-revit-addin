@@ -680,58 +680,51 @@ namespace PSRevitAddin.Forms
         }
         private void button2_Click(object sender, EventArgs e)
         {
-           
-            
             try
             {
-                try
-                {
-                    DozeOff();
-                    _eventHandler.ActionToExecute = (app) =>
-                    {
-                        UIDocument uiDoc = app.ActiveUIDocument;
-                        Document doc = app.ActiveUIDocument.Document;
-
-                        Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
-
-                        using (Transaction trans = new Transaction(doc, "ex"))
-                        {
-                            CadParser parser = new CadParser(_doc, _cad);
-                            List<CadWindowData> windowDatas = new List<CadWindowData>();
-                            if (windowDatas == null || windowDatas.Count == 0)
-                            {
-                                MessageBox.Show("캐드도면 없음", "알림");
-                                return;
-                            }
-                            FamilyPlacer placer = new FamilyPlacer(_doc);
-                            int successCount = placer.PlaceWindows(windowDatas);
-                            MessageBox.Show($"작업 완료! 총 {successCount}개의 패밀리가 성공적으로 배치되었습니다.", "성공");
-
-                        }
-                    };
-
-                    // ExternalEvent 실행
-                    _externalEvent?.Raise();
-                    // 잠시 대기
-                    System.Threading.Thread.Sleep(100);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error applying colors:\n{ex.Message}",
-                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                finally
-                {
-                    WakeUp();
-                }
                 DozeOff();
+                _eventHandler.ActionToExecute = (app) =>
+                {
+                    UIDocument uiDoc = app.ActiveUIDocument;
+                    Document doc = app.ActiveUIDocument.Document;
 
+                    Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
 
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show($"실행 중 오류가 발생했습니다:\n{ex.Message}\n\n{ex.StackTrace}", "오류 발생");
-            //}
+                    using (Transaction trans = new Transaction(doc, "CAD 창호 배치"))
+                    {
+                        trans.Start();
+
+                        CadParser parser = new CadParser(_doc, _cad);
+                        List<CadWindowData> windowDatas = parser.ExtractWindowData();
+                        
+                        if (windowDatas == null || windowDatas.Count == 0)
+                        {
+                            MessageBox.Show("캐드도면 없음", "알림");
+                            trans.RollBack();
+                            return;
+                        }
+                        
+                        FamilyPlacer placer = new FamilyPlacer(_doc);
+                        int successCount = placer.PlaceWindows(windowDatas);
+                        
+                        trans.Commit();
+                        MessageBox.Show($"작업 완료! 총 {successCount}개의 패밀리가 성공적으로 배치되었습니다.", "성공");
+                    }
+                };
+
+                // ExternalEvent 실행
+                _externalEvent?.Raise();
+                // 잠시 대기
+                System.Threading.Thread.Sleep(100);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"오류:\n{ex.Message}\n\n{ex.StackTrace}", "오류 발생");
+            }
+            finally
+            {
+                WakeUp();
+            }
         }
 
         private void MainForm_Load(object sender, EventArgs e)
