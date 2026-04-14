@@ -1,8 +1,6 @@
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Events;
-using Autodesk.Revit.UI.Selection;
 using PSRevitAddin.Models;
 using PSRevitAddin.Services;
 using System;
@@ -392,6 +390,7 @@ namespace PSRevitAddin.Forms
 
         }
 
+<<<<<<< HEAD
 
         private void button4_Click_1(object sender, EventArgs e)
         {
@@ -424,6 +423,41 @@ namespace PSRevitAddin.Forms
             {
                 MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+=======
+        private void checkBox6_CheckedChanged(object sender, EventArgs e)
+        {
+            // 제조사 A
+        }
+
+        private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // 창호 유형
+        }
+
+        private void textBox5_TextChanged(object sender, EventArgs e)
+        {
+            // b
+        }
+
+        private void checkBox7_CheckedChanged(object sender, EventArgs e)
+        {
+            // 제조사 B
+        }
+
+        private void checkBox9_CheckedChanged(object sender, EventArgs e)
+        {
+            // 제조사 C
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            //
+        }
+
+        private void comboBox8_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+>>>>>>> main
         }
     }
 }
