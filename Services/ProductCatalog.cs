@@ -130,7 +130,6 @@ namespace PSRevitAddin.Services
         private static void SetCellInlineStr(XmlNode row, int rowNum, int col,
             string value, XmlDocument doc, XmlNamespaceManager ns)
         {
-            // Find or create the cell element
             var existing = FindCell(row, col, ns);
             XmlElement cell;
             if (existing != null)
@@ -146,7 +145,6 @@ namespace PSRevitAddin.Services
                 cell = doc.CreateElement("c", NS);
                 cell.SetAttribute("r", $"{IndexToCol(col)}{rowNum}");
 
-                // Insert in column order
                 XmlNode? insertBefore = null;
                 var cells = row.SelectNodes("x:c", ns);
                 if (cells != null)
@@ -163,7 +161,7 @@ namespace PSRevitAddin.Services
 
             cell.SetAttribute("t", "inlineStr");
             var isEl = doc.CreateElement("is", NS);
-            var tEl  = doc.CreateElement("t",  NS);
+            var tEl = doc.CreateElement("t", NS);
             tEl.InnerText = value;
             isEl.AppendChild(tEl);
             cell.AppendChild(isEl);
@@ -173,7 +171,7 @@ namespace PSRevitAddin.Services
 
         public void CleanAndSave()
         {
-            // 1. Read entire xlsx (= zip) into memory
+            // 1. xlsx(= zip) 전체를 메모리로 읽기
             byte[] original = File.ReadAllBytes(_excelPath);
 
             XmlDocument sheetDoc;
@@ -189,7 +187,6 @@ namespace PSRevitAddin.Services
                 sheetDoc = new XmlDocument();
                 using (var s = sheetEntry.Open()) sheetDoc.Load(s);
 
-                // Preserve every other entry as-is
                 foreach (var entry in zip.Entries)
                 {
                     if (entry.FullName == "xl/worksheets/sheet1.xml") continue;
@@ -199,11 +196,11 @@ namespace PSRevitAddin.Services
                 }
             }
 
-            var ns   = MakeNs(sheetDoc);
+            var ns = MakeNs(sheetDoc);
             var rows = GetRowMap(sheetDoc, ns);
             var sheetData = sheetDoc.SelectSingleNode("//x:sheetData", ns);
 
-            // 2. ① 회사명 빈 셀 채우기 (위→아래, 삭제 전에 먼저)
+            // 2. ① 회사명 빈 셀 채우기 (위→아래)
             string lastVendor = "";
             foreach (var kv in rows)
             {
@@ -215,24 +212,34 @@ namespace PSRevitAddin.Services
                     SetCellInlineStr(kv.Value, kv.Key, 2, lastVendor, sheetDoc, ns);
             }
 
-            // 3. ② 불필요한 행 수집 후 삭제
+            // 3. ② 유리종류 정규화 (LOW-E 등 → 로이유리)
+            foreach (var kv in rows)
+            {
+                if (kv.Key == 1) continue;
+                var cell = FindCell(kv.Value, 11, ns);
+                string val = CellStr(cell, sharedStrings, ns).ToUpper().Trim();
+                if (val == "LOW-E" || val == "LOWE" || val == "LOW E" || val == "로이" || val == "LOW_E")
+                    SetCellInlineStr(kv.Value, kv.Key, 11, "로이유리", sheetDoc, ns);
+            }
+
+            // 4. ③ 불필요한 행 수집 후 삭제
             var toDelete = new List<XmlNode>();
             foreach (var kv in rows)
             {
                 if (kv.Key == 1) continue;
                 string productName = CellStr(FindCell(kv.Value, 3, ns), sharedStrings, ns);
-                double maxWidth    = CellDbl(FindCell(kv.Value, 6, ns), sharedStrings, ns);
+                double maxWidth = CellDbl(FindCell(kv.Value, 6, ns), sharedStrings, ns);
                 if (string.IsNullOrEmpty(productName) || maxWidth <= 500)
                     toDelete.Add(kv.Value);
             }
             foreach (var row in toDelete)
                 sheetData?.RemoveChild(row);
 
-            // 4. 수정된 sheet XML → byte[]
+            // 5. 수정된 sheet XML → byte[]
             byte[] sheetBytes;
             using (var ms = new MemoryStream()) { sheetDoc.Save(ms); sheetBytes = ms.ToArray(); }
 
-            // 5. 새 zip 파일 빌드 후 원본 덮어쓰기
+            // 6. 새 zip 빌드 후 원본 덮어쓰기
             using var outMs = new MemoryStream();
             using (var outZip = new ZipArchive(outMs, ZipArchiveMode.Create, leaveOpen: true))
             {
@@ -249,7 +256,7 @@ namespace PSRevitAddin.Services
             File.WriteAllBytes(_excelPath, outMs.ToArray());
         }
 
-        // ── GetAllProducts ────────────────────────────────────────────────────
+        // ── GetAllProducts ───────────────────────────────────────────────────
 
         public List<VendorProduct> GetAllProducts()
         {
@@ -284,44 +291,44 @@ namespace PSRevitAddin.Services
 
                 list.Add(new VendorProduct
                 {
-                    SymbolCode    = CellStr(FindCell(row,  1, ns), ss, ns),
-                    VendorName    = lastVendorName,
-                    ProductName   = productName,
-                    ModelNumber   = CellStr(FindCell(row,  4, ns), ss, ns),
-                    MinWidthMm    = CellDbl(FindCell(row,  5, ns), ss, ns),
-                    MaxWidthMm    = maxWidth,
-                    MinHeightMm   = CellDbl(FindCell(row,  7, ns), ss, ns),
-                    MaxHeightMm   = CellDbl(FindCell(row,  8, ns), ss, ns),
-                    IsFireRated   = CellStr(FindCell(row,  9, ns), ss, ns).ToUpper() == "Y",
-                    IsInsulated   = CellStr(FindCell(row, 10, ns), ss, ns).ToUpper() == "Y",
-                    GlassType     = ParseGlass(CellStr(FindCell(row,   11, ns), ss, ns)),
-                    FrameType     = ParseFrame(CellStr(FindCell(row,   12, ns), ss, ns)),
+                    SymbolCode = CellStr(FindCell(row, 1, ns), ss, ns),
+                    VendorName = lastVendorName,
+                    ProductName = productName,
+                    ModelNumber = CellStr(FindCell(row, 4, ns), ss, ns),
+                    MinWidthMm = CellDbl(FindCell(row, 5, ns), ss, ns),
+                    MaxWidthMm = maxWidth,
+                    MinHeightMm = CellDbl(FindCell(row, 7, ns), ss, ns),
+                    MaxHeightMm = CellDbl(FindCell(row, 8, ns), ss, ns),
+                    IsFireRated = CellStr(FindCell(row, 9, ns), ss, ns).ToUpper() == "Y",
+                    IsInsulated = CellStr(FindCell(row, 10, ns), ss, ns).ToUpper() == "Y",
+                    GlassType = ParseGlass(CellStr(FindCell(row, 11, ns), ss, ns)),
+                    FrameType = ParseFrame(CellStr(FindCell(row, 12, ns), ss, ns)),
                     OpeningMethod = ParseOpening(CellStr(FindCell(row, 13, ns), ss, ns)),
-                    FamilyPath    = CellStr(FindCell(row, 14, ns), ss, ns),
-                    UnitPrice     = CellDec(FindCell(row, 15, ns), ss, ns),
+                    FamilyPath = CellStr(FindCell(row, 14, ns), ss, ns),
+                    UnitPrice = CellDec(FindCell(row, 15, ns), ss, ns),
                 });
             }
             return list;
         }
 
-        // ── Enum parsers ──────────────────────────────────────────────────────
+        // ── Enum parsers ─────────────────────────────────────────────────────
 
         private static OpeningMethod ParseOpening(string val) => val switch
         {
-            "고정창"  => OpeningMethod.Fixed,
+            "고정창" => OpeningMethod.Fixed,
             "슬라이딩" => OpeningMethod.Sliding,
             "프로젝트" => OpeningMethod.ProjectOut,
-            "여닫이"  => OpeningMethod.CasementSwing,
+            "여닫이" => OpeningMethod.CasementSwing,
             _ => OpeningMethod.Fixed
         };
 
         private static FrameType ParseFrame(string val) => val switch
         {
             "알루미늄" => FrameType.Aluminum,
-            "PVC"    => FrameType.Pvc,
+            "PVC" => FrameType.Pvc,
             "AL+PVC" => FrameType.AlPvc,
-            "복합"    => FrameType.Combination,
-            "커튼월"  => FrameType.CurtainWall,
+            "복합" => FrameType.Combination,
+            "커튼월" => FrameType.CurtainWall,
             _ => FrameType.Aluminum
         };
 

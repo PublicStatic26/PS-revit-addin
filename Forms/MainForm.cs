@@ -655,7 +655,7 @@ namespace PSRevitAddin.Forms
 
                 if (!File.Exists(dbPath))
                 {
-                    MessageBox.Show($"파일을 찾을 수 없습니다:\n{dbPath}", "파일 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show("파일을 찾을 수 없습니다.");
                     return;
                 }
 
@@ -664,16 +664,28 @@ namespace PSRevitAddin.Forms
 
                 if (products.Count == 0)
                 {
-                    MessageBox.Show("읽어온 제품이 없습니다. 엑셀 내용을 확인하세요.");
+                    MessageBox.Show("제품이 없습니다.");
                     return;
                 }
 
-                MessageBox.Show($"총 {products.Count}개 제품 읽어옴\n" +
-                                $"첫 번째: {products[0].VendorName} / {products[0].ProductName}");
+                // ExternalEvent 먼저 실행
+                DozeOff();
+                _eventHandler.ActionToExecute = (app) =>
+                {
+                    var updater = new ParameterUpdater(app.ActiveUIDocument.Document);
+                    updater.UpdateFamilyType(products);
+
+                    // 완료 후 UI 잠금 해제
+                    WakeUp();
+
+                    // MessageBox는 여기 안에서
+                    MessageBox.Show($"총 {products.Count}개 창호 타입 생성 완료!");
+                };
+                _externalEvent?.Raise();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"오류:\n{ex.Message}");
             }
         }
     }
