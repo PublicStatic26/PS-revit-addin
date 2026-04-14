@@ -71,6 +71,7 @@
             tabPage3 = new TabPage();
             dataGridView1 = new DataGridView();
             button4 = new Button();
+            label12 = new Label();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -80,7 +81,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(864, 18);
+            button1.Location = new Point(864, 547);
             button1.Name = "button1";
             button1.Size = new Size(93, 23);
             button1.TabIndex = 0;
@@ -90,7 +91,7 @@
             // 
             // button2
             // 
-            button2.Location = new Point(8, 17);
+            button2.Location = new Point(864, 24);
             button2.Name = "button2";
             button2.Size = new Size(93, 23);
             button2.TabIndex = 1;
@@ -102,7 +103,7 @@
             comboBox1.FormattingEnabled = true;
             comboBox1.Location = new Point(10, 384);
             comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(106, 23);
+            comboBox1.Size = new Size(157, 23);
             comboBox1.TabIndex = 3;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
@@ -111,14 +112,14 @@
             comboBox2.FormattingEnabled = true;
             comboBox2.Location = new Point(10, 442);
             comboBox2.Name = "comboBox2";
-            comboBox2.Size = new Size(106, 23);
+            comboBox2.Size = new Size(157, 23);
             comboBox2.TabIndex = 4;
             comboBox2.SelectedIndexChanged += comboBox2_SelectedIndexChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(13, 362);
+            label1.Location = new Point(10, 365);
             label1.Name = "label1";
             label1.Size = new Size(67, 15);
             label1.TabIndex = 5;
@@ -127,7 +128,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(10, 420);
+            label2.Location = new Point(10, 423);
             label2.Name = "label2";
             label2.Size = new Size(55, 15);
             label2.TabIndex = 6;
@@ -180,12 +181,12 @@
             // 
             // tabPage1
             // 
+            tabPage1.Controls.Add(label12);
             tabPage1.Controls.Add(flowLayoutPanel1);
             tabPage1.Controls.Add(checkBox9);
             tabPage1.Controls.Add(label14);
             tabPage1.Controls.Add(textBox5);
             tabPage1.Controls.Add(label13);
-            tabPage1.Controls.Add(button2);
             tabPage1.Controls.Add(comboBox7);
             tabPage1.Controls.Add(checkBox7);
             tabPage1.Controls.Add(checkBox6);
@@ -213,9 +214,9 @@
             // flowLayoutPanel1
             // 
             flowLayoutPanel1.Dock = DockStyle.Right;
-            flowLayoutPanel1.Location = new Point(194, 3);
+            flowLayoutPanel1.Location = new Point(173, 3);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(653, 548);
+            flowLayoutPanel1.Size = new Size(674, 548);
             flowLayoutPanel1.TabIndex = 15;
             flowLayoutPanel1.Paint += flowLayoutPanel1_Paint;
             // 
@@ -233,7 +234,7 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(13, 159);
+            label14.Location = new Point(10, 128);
             label14.Name = "label14";
             label14.Size = new Size(14, 15);
             label14.TabIndex = 32;
@@ -241,7 +242,7 @@
             // 
             // textBox5
             // 
-            textBox5.Location = new Point(13, 177);
+            textBox5.Location = new Point(10, 146);
             textBox5.Name = "textBox5";
             textBox5.Size = new Size(100, 23);
             textBox5.TabIndex = 31;
@@ -252,7 +253,7 @@
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(13, 64);
+            label13.Location = new Point(10, 23);
             label13.Name = "label13";
             label13.Size = new Size(55, 15);
             label13.TabIndex = 30;
@@ -261,7 +262,7 @@
             // comboBox7
             // 
             comboBox7.FormattingEnabled = true;
-            comboBox7.Location = new Point(13, 86);
+            comboBox7.Location = new Point(10, 45);
             comboBox7.Name = "comboBox7";
             comboBox7.Size = new Size(154, 23);
             comboBox7.TabIndex = 25;
@@ -292,7 +293,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(13, 203);
+            label5.Location = new Point(10, 172);
             label5.Name = "label5";
             label5.Size = new Size(14, 15);
             label5.TabIndex = 17;
@@ -300,7 +301,7 @@
             // 
             // textBox2
             // 
-            textBox2.Location = new Point(13, 221);
+            textBox2.Location = new Point(10, 190);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(100, 23);
             textBox2.TabIndex = 16;
@@ -311,7 +312,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(13, 112);
+            label4.Location = new Point(10, 81);
             label4.Name = "label4";
             label4.Size = new Size(16, 15);
             label4.TabIndex = 15;
@@ -319,7 +320,7 @@
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(13, 133);
+            textBox1.Location = new Point(10, 102);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(100, 23);
             textBox1.TabIndex = 14;
@@ -337,15 +338,14 @@
             // comboBox3
             // 
             comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(13, 500);
+            comboBox3.Location = new Point(10, 503);
             comboBox3.Name = "comboBox3";
-            comboBox3.Size = new Size(106, 23);
+            comboBox3.Size = new Size(157, 23);
             comboBox3.TabIndex = 7;
             comboBox3.SelectedIndexChanged += comboBox3_SelectedIndexChanged;
             // 
             // tabPage2
             // 
-            tabPage2.Controls.Add(button3);
             tabPage2.Controls.Add(checkBox5);
             tabPage2.Controls.Add(checkBox4);
             tabPage2.Controls.Add(label11);
@@ -369,7 +369,7 @@
             // 
             // button3
             // 
-            button3.Location = new Point(6, 23);
+            button3.Location = new Point(864, 53);
             button3.Name = "button3";
             button3.Size = new Size(93, 23);
             button3.TabIndex = 31;
@@ -518,7 +518,7 @@
             // 
             // button4
             // 
-            button4.Location = new Point(864, 547);
+            button4.Location = new Point(864, 109);
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
@@ -526,14 +526,25 @@
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
+            // label12
+            // 
+            label12.AutoSize = true;
+            label12.Location = new Point(10, 484);
+            label12.Name = "label12";
+            label12.Size = new Size(55, 15);
+            label12.TabIndex = 35;
+            label12.Text = "개폐방식";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(967, 582);
+            Controls.Add(button3);
             Controls.Add(button4);
             Controls.Add(tabControl1);
             Controls.Add(button1);
+            Controls.Add(button2);
             Name = "MainForm";
             Text = "PS 창호설계";
             FormClosing += MainForm_FormClosing;
@@ -592,5 +603,6 @@
         private Button button3;
         private FlowLayoutPanel flowLayoutPanel1;
         private Button button4;
+        private Label label12;
     }
 }
