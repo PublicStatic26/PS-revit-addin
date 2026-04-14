@@ -30,7 +30,6 @@
         {
             button1 = new Button();
             button2 = new Button();
-            button3 = new Button();
             comboBox1 = new ComboBox();
             comboBox2 = new ComboBox();
             label1 = new Label();
@@ -45,7 +44,6 @@
             textBox5 = new TextBox();
             label13 = new Label();
             comboBox7 = new ComboBox();
-            listView4 = new ListView();
             checkBox7 = new CheckBox();
             checkBox6 = new CheckBox();
             label5 = new Label();
@@ -55,6 +53,7 @@
             label3 = new Label();
             comboBox3 = new ComboBox();
             tabPage2 = new TabPage();
+            button3 = new Button();
             checkBox5 = new CheckBox();
             checkBox4 = new CheckBox();
             label11 = new Label();
@@ -70,7 +69,7 @@
             textBox4 = new TextBox();
             tabPage3 = new TabPage();
             dataGridView1 = new DataGridView();
-            button4 = new Button();
+            flowLayoutPanel1 = new FlowLayoutPanel();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -90,26 +89,17 @@
             // 
             // button2
             // 
-            button2.Location = new Point(23, 23);
+            button2.Location = new Point(8, 17);
             button2.Name = "button2";
             button2.Size = new Size(93, 23);
             button2.TabIndex = 1;
             button2.Text = "Create WIn";
             button2.UseVisualStyleBackColor = true;
             // 
-            // button3
-            // 
-            button3.Location = new Point(23, 52);
-            button3.Name = "button3";
-            button3.Size = new Size(93, 23);
-            button3.TabIndex = 2;
-            button3.Text = "Create Door";
-            button3.UseVisualStyleBackColor = true;
-            // 
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(26, 340);
+            comboBox1.Location = new Point(10, 384);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(106, 23);
             comboBox1.TabIndex = 3;
@@ -118,7 +108,7 @@
             // comboBox2
             // 
             comboBox2.FormattingEnabled = true;
-            comboBox2.Location = new Point(29, 402);
+            comboBox2.Location = new Point(10, 442);
             comboBox2.Name = "comboBox2";
             comboBox2.Size = new Size(106, 23);
             comboBox2.TabIndex = 4;
@@ -127,7 +117,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(29, 318);
+            label1.Location = new Point(13, 362);
             label1.Name = "label1";
             label1.Size = new Size(67, 15);
             label1.TabIndex = 5;
@@ -136,7 +126,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(29, 380);
+            label2.Location = new Point(10, 420);
             label2.Name = "label2";
             label2.Size = new Size(55, 15);
             label2.TabIndex = 6;
@@ -145,7 +135,7 @@
             // checkBox1
             // 
             checkBox1.AutoSize = true;
-            checkBox1.Location = new Point(121, 268);
+            checkBox1.Location = new Point(93, 272);
             checkBox1.Name = "checkBox1";
             checkBox1.Size = new Size(50, 19);
             checkBox1.TabIndex = 9;
@@ -156,21 +146,22 @@
             // checkBox2
             // 
             checkBox2.AutoSize = true;
-            checkBox2.Location = new Point(221, 268);
+            checkBox2.Location = new Point(93, 297);
             checkBox2.Name = "checkBox2";
             checkBox2.Size = new Size(50, 19);
             checkBox2.TabIndex = 10;
             checkBox2.Text = "단열";
             checkBox2.UseVisualStyleBackColor = true;
+            checkBox2.CheckedChanged += checkBox2_CheckedChanged;
             // 
             // checkBox3
             // 
             checkBox3.AutoSize = true;
-            checkBox3.Location = new Point(212, 340);
+            checkBox3.Location = new Point(93, 322);
             checkBox3.Name = "checkBox3";
             checkBox3.Size = new Size(74, 19);
             checkBox3.TabIndex = 11;
-            checkBox3.Text = "삼중유리";
+            checkBox3.Text = "어떤옵션";
             checkBox3.UseVisualStyleBackColor = true;
             checkBox3.CheckedChanged += checkBox3_CheckedChanged;
             // 
@@ -188,14 +179,13 @@
             // 
             // tabPage1
             // 
+            tabPage1.Controls.Add(flowLayoutPanel1);
             tabPage1.Controls.Add(checkBox9);
             tabPage1.Controls.Add(label14);
             tabPage1.Controls.Add(textBox5);
             tabPage1.Controls.Add(label13);
-            tabPage1.Controls.Add(button3);
             tabPage1.Controls.Add(button2);
             tabPage1.Controls.Add(comboBox7);
-            tabPage1.Controls.Add(listView4);
             tabPage1.Controls.Add(checkBox7);
             tabPage1.Controls.Add(checkBox6);
             tabPage1.Controls.Add(label5);
@@ -222,7 +212,7 @@
             // checkBox9
             // 
             checkBox9.AutoSize = true;
-            checkBox9.Location = new Point(8, 268);
+            checkBox9.Location = new Point(13, 322);
             checkBox9.Name = "checkBox9";
             checkBox9.Size = new Size(74, 19);
             checkBox9.TabIndex = 33;
@@ -233,7 +223,7 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(135, 192);
+            label14.Location = new Point(13, 159);
             label14.Name = "label14";
             label14.Size = new Size(14, 15);
             label14.TabIndex = 32;
@@ -241,7 +231,7 @@
             // 
             // textBox5
             // 
-            textBox5.Location = new Point(135, 210);
+            textBox5.Location = new Point(13, 177);
             textBox5.Name = "textBox5";
             textBox5.Size = new Size(100, 23);
             textBox5.TabIndex = 31;
@@ -252,7 +242,7 @@
             // label13
             // 
             label13.AutoSize = true;
-            label13.Location = new Point(29, 91);
+            label13.Location = new Point(13, 64);
             label13.Name = "label13";
             label13.Size = new Size(55, 15);
             label13.TabIndex = 30;
@@ -261,24 +251,16 @@
             // comboBox7
             // 
             comboBox7.FormattingEnabled = true;
-            comboBox7.Location = new Point(24, 109);
+            comboBox7.Location = new Point(13, 86);
             comboBox7.Name = "comboBox7";
-            comboBox7.Size = new Size(211, 23);
+            comboBox7.Size = new Size(154, 23);
             comboBox7.TabIndex = 25;
             comboBox7.SelectedIndexChanged += comboBox7_SelectedIndexChanged;
-            // 
-            // listView4
-            // 
-            listView4.Location = new Point(330, 23);
-            listView4.Name = "listView4";
-            listView4.Size = new Size(235, 506);
-            listView4.TabIndex = 24;
-            listView4.UseCompatibleStateImageBehavior = false;
             // 
             // checkBox7
             // 
             checkBox7.AutoSize = true;
-            checkBox7.Location = new Point(8, 239);
+            checkBox7.Location = new Point(13, 297);
             checkBox7.Name = "checkBox7";
             checkBox7.Size = new Size(73, 19);
             checkBox7.TabIndex = 20;
@@ -289,7 +271,7 @@
             // checkBox6
             // 
             checkBox6.AutoSize = true;
-            checkBox6.Location = new Point(6, 214);
+            checkBox6.Location = new Point(13, 272);
             checkBox6.Name = "checkBox6";
             checkBox6.Size = new Size(74, 19);
             checkBox6.TabIndex = 19;
@@ -300,15 +282,15 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(171, 150);
+            label5.Location = new Point(13, 203);
             label5.Name = "label5";
-            label5.Size = new Size(16, 15);
+            label5.Size = new Size(14, 15);
             label5.TabIndex = 17;
-            label5.Text = "H";
+            label5.Text = "h";
             // 
             // textBox2
             // 
-            textBox2.Location = new Point(171, 168);
+            textBox2.Location = new Point(13, 221);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(100, 23);
             textBox2.TabIndex = 16;
@@ -319,35 +301,27 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(24, 150);
+            label4.Location = new Point(13, 112);
             label4.Name = "label4";
-            label4.Size = new Size(18, 15);
+            label4.Size = new Size(16, 15);
             label4.TabIndex = 15;
-            label4.Text = "W";
+            label4.Text = "w";
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(24, 171);
+            textBox1.Location = new Point(13, 133);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(100, 23);
             textBox1.TabIndex = 14;
             textBox1.Text = "0";
             textBox1.TextAlign = HorizontalAlignment.Center;
             textBox1.TextChanged += textBox1_TextChanged;
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Location = new Point(29, 434);
-            label3.Name = "label3";
-            label3.Size = new Size(55, 15);
-            label3.TabIndex = 8;
-            label3.Text = "개폐방식";
+            
             // 
             // comboBox3
             // 
             comboBox3.FormattingEnabled = true;
-            comboBox3.Location = new Point(29, 456);
+            comboBox3.Location = new Point(13, 500);
             comboBox3.Name = "comboBox3";
             comboBox3.Size = new Size(106, 23);
             comboBox3.TabIndex = 7;
@@ -355,6 +329,7 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(button3);
             tabPage2.Controls.Add(checkBox5);
             tabPage2.Controls.Add(checkBox4);
             tabPage2.Controls.Add(label11);
@@ -375,6 +350,15 @@
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Door";
             tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // button3
+            // 
+            button3.Location = new Point(6, 23);
+            button3.Name = "button3";
+            button3.Size = new Size(93, 23);
+            button3.TabIndex = 31;
+            button3.Text = "Create Door";
+            button3.UseVisualStyleBackColor = true;
             // 
             // checkBox5
             // 
@@ -516,29 +500,20 @@
             dataGridView1.Size = new Size(850, 554);
             dataGridView1.TabIndex = 15;
             // 
-<<<<<<< HEAD
-            // button4
+            // flowLayoutPanel1
             // 
-            button4.Location = new Point(577, 367);
-            button4.Name = "button4";
-            button4.Size = new Size(93, 23);
-            button4.TabIndex = 15;
-            button4.Text = "TEST";
-            button4.UseVisualStyleBackColor = true;
-            button4.Click += button4_Click_1;
+            flowLayoutPanel1.Dock = DockStyle.Right;
+            flowLayoutPanel1.Location = new Point(194, 3);
+            flowLayoutPanel1.Name = "flowLayoutPanel1";
+            flowLayoutPanel1.Size = new Size(653, 548);
+            flowLayoutPanel1.TabIndex = 15;
+            flowLayoutPanel1.Paint += flowLayoutPanel1_Paint;
             // 
-=======
->>>>>>> main
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-<<<<<<< HEAD
-            ClientSize = new Size(682, 402);
-            Controls.Add(button4);
-=======
             ClientSize = new Size(967, 582);
->>>>>>> main
             Controls.Add(tabControl1);
             Controls.Add(button1);
             Name = "MainForm";
@@ -558,7 +533,6 @@
 
         private Button button1;
         private Button button2;
-        private Button button3;
         private ComboBox comboBox1;
         private ComboBox comboBox2;
         private Label label1;
@@ -588,19 +562,16 @@
         private Label label11;
         private CheckBox checkBox5;
         private CheckBox checkBox4;
-<<<<<<< HEAD
-        private Button button4;
-=======
         private CheckBox checkBox6;
         private Label label13;
         private ComboBox comboBox7;
-        private ListView listView4;
         private CheckBox checkBox7;
         private Label label3;
         private ComboBox comboBox3;
         private Label label14;
         private TextBox textBox5;
         private CheckBox checkBox9;
->>>>>>> main
+        private Button button3;
+        private FlowLayoutPanel flowLayoutPanel1;
     }
 }
