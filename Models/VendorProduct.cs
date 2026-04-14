@@ -51,6 +51,9 @@ namespace PSRevitAddin.Models
         /// <summary>단열 성능 적용 여부</summary>
         public bool IsInsulated { get; set; }
 
+        /// <summary>자동 개폐 기능 여부</summary>
+        public bool IsAutoOpening { get; set; }
+
         /// <summary>유리 종류</summary>
         public GlassType GlassType { get; set; }
 
