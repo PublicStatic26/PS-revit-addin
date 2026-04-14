@@ -89,5 +89,47 @@ namespace PSRevitAddin
         }
 
         #endregion
+
+        #region 요소 검색
+
+        /// <summary>
+        /// 주어진 위치에서 가장 가까운 벽을 찾는다.
+        /// </summary>
+        public static Wall FindNearestWall(List<Wall> walls, XYZ location)
+        {
+            if (walls == null || walls.Count == 0)
+                return null;
+
+            Wall nearestWall = null;
+            double minDistance = double.MaxValue;
+
+            foreach (Wall wall in walls)
+            {
+                // 벽의 위치 정보 (LocationCurve)에서 곡선 추출
+                LocationCurve wallLocation = wall.Location as LocationCurve;
+                if (wallLocation == null) continue;
+
+                Curve curve = wallLocation.Curve;
+                if (curve == null) continue;
+
+                XYZ p1 = curve.GetEndPoint(0);
+                XYZ p2 = curve.GetEndPoint(1);
+
+                double dist1 = location.DistanceTo(p1);
+                double dist2 = location.DistanceTo(p2);
+                double minDist = Math.Min(dist1, dist2);
+
+                if (minDist < minDistance)
+                {
+                    minDistance = minDist;
+                    nearestWall = wall;
+                }
+            }
+
+            return nearestWall;
+        }
+        #endregion
     }
 }
+
+     
