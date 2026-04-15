@@ -1,4 +1,4 @@
-
+﻿
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -25,6 +25,7 @@ namespace PSRevitAddin.Forms
         private ProductFilter _productFilter;
         private readonly ProductCatalog _catalog;
         private List<VendorProduct> _allProducts = new List<VendorProduct>();
+        private VendorProduct? _selectedProduct = null;
 
         private static readonly string[] VendorNames = { "Eagon", "LX Z:IN", "Jinheung" };
 
@@ -37,6 +38,7 @@ namespace PSRevitAddin.Forms
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
             _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
+            _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
         }
 
@@ -192,6 +194,9 @@ namespace PSRevitAddin.Forms
             card.Height = cardHeight;
             card.BackColor = Color.WhiteSmoke;
             card.BorderStyle = BorderStyle.FixedSingle;
+            card.Cursor = Cursors.Hand;
+            card.Click += (s, e) => SelectProduct(product, card);
+            card.Tag = product;
 
             // 1행: 제품명 + 모델번호 + [방화] [단열] 뱃지
             string badges = string.Empty;
@@ -234,6 +239,18 @@ namespace PSRevitAddin.Forms
             card.Controls.Add(priceLabel);
 
             return card;
+        }
+
+        private Panel? _selectedCard = null;
+
+        private void SelectProduct(VendorProduct product, Panel card)
+        {
+            if (_selectedCard != null)
+                _selectedCard.BackColor = Color.WhiteSmoke;
+
+            _selectedProduct = product;
+            _selectedCard = card;
+            card.BackColor = Color.LightSteelBlue;
         }
 
         private string GlassTypeToKorean(GlassType glassType)
@@ -639,29 +656,43 @@ namespace PSRevitAddin.Forms
         {
             try
             {
-                string dbPath = @"Z:\5조\창호DB.xlsx";
-
-                if (!File.Exists(dbPath))
+                if (comboBox7.SelectedIndex < 0)
                 {
-                    MessageBox.Show("파일을 찾을 수 없습니다.");
+                    MessageBox.Show("창호유형을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                var catalog = new ProductCatalog(dbPath);
-                var products = catalog.GetAllProducts();
-
-                if (products.Count == 0)
+                if (_selectedProduct == null)
                 {
-                    MessageBox.Show("읽어온 제품이 없습니다. 엑셀 내용을 확인하세요.");
+                    MessageBox.Show("제품을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
-                MessageBox.Show($"총 {products.Count}개 제품 읽어옴\n" +
-                                $"첫 번째: {products[0].VendorName} / {products[0].ProductName}");
+                string selectedTypeName = comboBox7.SelectedItem?.ToString() ?? "";
+                if (string.IsNullOrEmpty(selectedTypeName)) return;
+
+                _selectedProduct.SymbolCode = selectedTypeName;
+                var productToApply = _selectedProduct;
+
+                DozeOff();
+                _eventHandler.ActionToExecute = (app) =>
+                {
+                    Document doc = app.ActiveUIDocument.Document;
+                    var updater = new ParameterUpdater(doc);
+                    updater.UpdateFamilyType([productToApply]);
+                };
+
+                _externalEvent?.Raise();
+                System.Threading.Thread.Sleep(100);
+                MessageBox.Show("파라미터 적용 완료!", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                WakeUp();
             }
         }
 

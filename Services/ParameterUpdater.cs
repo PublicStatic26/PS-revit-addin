@@ -33,14 +33,6 @@ namespace PSRevitAddin.Services
             { FrameType.CurtainWall, "커튼월" },
         };
 
-        private static readonly Dictionary<OpeningMethod, string> OpeningNames = new Dictionary<OpeningMethod, string>
-        {
-            { OpeningMethod.Fixed,         "고정창" },
-            { OpeningMethod.Sliding,       "슬라이딩" },
-            { OpeningMethod.ProjectOut,    "프로젝트" },
-            { OpeningMethod.CasementSwing, "여닫이" },
-        };
-
         public ParameterUpdater(Document doc)
         {
             _doc = doc;
@@ -65,51 +57,21 @@ namespace PSRevitAddin.Services
 
         // ── 메인 ────────────────────────────────────────────────────────────
 
-        // 창호를 생성하기 전에 개폐방식에 따라서 필터를 건다. 선택된 방식에 따라서 생성이 된다.
+        // 그래스호퍼가 생성한 WINDOW-어셈블 유형(WD-01, WD-02...)을 찾아 파라미터 값만 적용한다.
         public void UpdateFamilyType(List<VendorProduct> products)
         {
-            using (var trans = new Transaction(_doc, "창호 타입 생성"))
+            using (var trans = new Transaction(_doc, "창호 파라미터 적용"))
             {
                 trans.Start();
 
                 foreach (var product in products)
                 {
-                    // 개폐방식별 패밀리 선택
-                    var familyName = product.OpeningMethod switch
-                    {
-                        OpeningMethod.CasementSwing => "WINDOW_여닫이창",
-                        OpeningMethod.Fixed => "WINDOW_고정창",
-                        OpeningMethod.Sliding => "WINDOW_슬라이딩창",
-                        OpeningMethod.ProjectOut => "WINDOW_프로젝트창",
-                        _                        => "WINDOW_고정창"
-
-                    };
-
-                    // 해당 패밀리 심볼 찾기
-                    var collector = new FilteredElementCollector(_doc)
+                    // WINDOW-어셈블 패밀리에서 유형마크(WD-01 등)로 심볼 찾기
+                    var symbol = new FilteredElementCollector(_doc)
                         .OfClass(typeof(FamilySymbol))
                         .Cast<FamilySymbol>()
-                        .Where(s => s.FamilyName == familyName)
-                        .ToList();
-
-                    string typeName = product.SymbolCode;
-
-                    // 기존 타입 찾기
-                    var existing = collector.FirstOrDefault(s => s.Name == typeName);
-                    FamilySymbol symbol;
-
-                    if (existing == null)
-                    {
-                        var baseSymbol = collector.FirstOrDefault();
-                        if (baseSymbol == null) continue;
-
-                        symbol = baseSymbol.Duplicate(typeName) as FamilySymbol;
-                        if (symbol != null) collector.Add(symbol);
-                    }
-                    else
-                    {
-                        symbol = existing;
-                    }
+                        .FirstOrDefault(s => s.FamilyName == "WINDOW-어셈블"
+                                          && s.Name == product.SymbolCode);
 
                     if (symbol == null) continue;
 
@@ -121,7 +83,7 @@ namespace PSRevitAddin.Services
                     symbol.LookupParameter("회사명")?.Set(product.VendorName);
                     symbol.LookupParameter("제품명")?.Set(product.ProductName);
                     symbol.LookupParameter("모델번호")?.Set(product.ModelNumber);
-                    symbol.LookupParameter("개폐방식")?.Set(OpeningNames[product.OpeningMethod]);
+                    symbol.LookupParameter("개폐방식")?.Set(product.OpeningMethod.ToString());
 
                     // ── 예/아니오 파라미터 ───────────────────────────────────
                     symbol.LookupParameter("방화")?.Set(product.IsFireRated ? 1 : 0);

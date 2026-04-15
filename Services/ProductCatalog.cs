@@ -55,6 +55,9 @@ namespace PSRevitAddin.Services
             return list;
         }
 
+
+        ///
+
         // ── Column helpers ───────────────────────────────────────────────────
 
         private static int ColToIndex(string letters)
