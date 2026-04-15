@@ -142,7 +142,9 @@ namespace PSRevitAddin.Forms
         private Panel CreateVendorSection(string vendorName, List<VendorProduct> products, int width, int height)
         {
             const int headerH = 28;
-            const int cardH = 88;
+
+            const int cardH = 190;
+
             const int cardGap = 4;
 
             Panel section = new Panel();
@@ -187,7 +189,12 @@ namespace PSRevitAddin.Forms
         /// </summary>
         private Panel CreateProductCard(VendorProduct product, int width)
         {
-            int cardHeight = 88;
+
+            int cardHeight = 190;
+            const int rowH = 18;
+            const int rowStride = 22; // rowH(18) + gap(4)
+            const int startY = 8;
+
 
             Panel card = new Panel();
             card.Width = width;
@@ -198,41 +205,73 @@ namespace PSRevitAddin.Forms
             card.Click += (s, e) => SelectProduct(product, card);
             card.Tag = product;
 
-            // 1행: 제품명 + 모델번호 + [방화] [단열] 뱃지
-            string badges = string.Empty;
-            if (product.IsFireRated) badges += "[방화] ";
-            if (product.IsInsulated) badges += "[단열]";
 
+            // 1행: 제품명 (굵게)
             Label nameLabel = new Label();
-            nameLabel.Text = product.ProductName + "  " + product.ModelNumber + "  " + badges.Trim();
-            nameLabel.Location = new Point(8, 8);
-            nameLabel.Size = new Size(width - 16, 18);
+            nameLabel.Text = product.ProductName;
+            nameLabel.Location = new Point(8, startY + rowStride * 0);
+            nameLabel.Size = new Size(width - 16, rowH);
             nameLabel.Font = new Font(this.Font, FontStyle.Bold);
             card.Controls.Add(nameLabel);
 
-            // 2행: 유리 종류 · 프레임 · 개폐방식
-            Label specLabel = new Label();
-            specLabel.Text = GlassTypeToKorean(product.GlassType)
-                + " · " + FrameTypeToKorean(product.FrameType)
-                + " · " + OpeningMethodToKorean(product.OpeningMethod);
-            specLabel.Location = new Point(8, 32);
-            specLabel.Size = new Size(width - 16, 18);
-            specLabel.ForeColor = Color.DimGray;
-            card.Controls.Add(specLabel);
+            // 2행: 단열 / 방화 / 전동개폐 여부
+            string insulated = product.IsInsulated ? "단열 ✔" : "단열 ✘";
+            string fireRated = product.IsFireRated ? "방화 ✔" : "방화 ✘";
+            string autoOpen = product.IsAutoOpening ? "전동개폐 ✔" : "전동개폐 ✘";
 
-            // 3행: 사이즈 범위 (왼쪽) + 단가 (오른쪽)
-            Label sizeLabel = new Label();
-            sizeLabel.Text = "W " + product.MinWidthMm.ToString("0") + "~" + product.MaxWidthMm.ToString("0")
-                + " × H " + product.MinHeightMm.ToString("0") + "~" + product.MaxHeightMm.ToString("0") + " mm";
-            sizeLabel.Location = new Point(8, 58);
-            sizeLabel.Size = new Size(width - 130, 18);
-            sizeLabel.ForeColor = Color.DimGray;
-            card.Controls.Add(sizeLabel);
+            Label badgeLabel = new Label();
+            badgeLabel.Text = insulated + "  " + fireRated + "  " + autoOpen;
+            badgeLabel.Location = new Point(8, startY + rowStride * 1);
+            badgeLabel.Size = new Size(width - 16, rowH);
+            badgeLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(badgeLabel);
 
+            // 3행: 창호 프레임
+            Label frameLabel = new Label();
+            frameLabel.Text = "프레임: " + FrameTypeToKorean(product.FrameType);
+            frameLabel.Location = new Point(8, startY + rowStride * 2);
+            frameLabel.Size = new Size(width - 16, rowH);
+            frameLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(frameLabel);
+
+            // 4행: 유리 종류
+            Label glassLabel = new Label();
+            glassLabel.Text = "유리: " + GlassTypeToKorean(product.GlassType);
+            glassLabel.Location = new Point(8, startY + rowStride * 3);
+            glassLabel.Size = new Size(width - 16, rowH);
+            glassLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(glassLabel);
+
+            // 5행: 개폐방식
+            Label openingLabel = new Label();
+            openingLabel.Text = "개폐: " + OpeningMethodToKorean(product.OpeningMethod);
+            openingLabel.Location = new Point(8, startY + rowStride * 4);
+            openingLabel.Size = new Size(width - 16, rowH);
+            openingLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(openingLabel);
+
+            // 6행: 최대치수
+            Label maxSizeLabel = new Label();
+            maxSizeLabel.Text = "최대: W " + product.MaxWidthMm.ToString("0") + " × H " + product.MaxHeightMm.ToString("0") + " mm";
+            maxSizeLabel.Location = new Point(8, startY + rowStride * 5);
+            maxSizeLabel.Size = new Size(width - 16, rowH);
+            maxSizeLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(maxSizeLabel);
+
+            // 7행: 최소치수
+            Label minSizeLabel = new Label();
+            minSizeLabel.Text = "최소: W " + product.MinWidthMm.ToString("0") + " × H " + product.MinHeightMm.ToString("0") + " mm";
+            minSizeLabel.Location = new Point(8, startY + rowStride * 6);
+            minSizeLabel.Size = new Size(width - 16, rowH);
+            minSizeLabel.ForeColor = Color.DimGray;
+            card.Controls.Add(minSizeLabel);
+
+            // 8행: 단가 (오른쪽 정렬, 굵게)
             Label priceLabel = new Label();
             priceLabel.Text = "₩ " + product.UnitPrice.ToString("N0");
-            priceLabel.Location = new Point(width - 122, 56);
-            priceLabel.Size = new Size(114, 20);
+            priceLabel.Location = new Point(8, startY + rowStride * 7);
+            priceLabel.Size = new Size(width - 16, rowH);
+
             priceLabel.TextAlign = ContentAlignment.MiddleRight;
             priceLabel.Font = new Font(this.Font, FontStyle.Bold);
             priceLabel.ForeColor = Color.DarkBlue;
