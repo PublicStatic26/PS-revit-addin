@@ -98,7 +98,7 @@ namespace PSRevitAddin.Forms
             button2.TabIndex = 1;
             button2.Text = "Create WIn";
             button2.UseVisualStyleBackColor = true;
-            //button2.Click += button2_Click_1;
+            button2.Click += button2_Click_1;
             // 
             // comboBox1
             // 
@@ -560,6 +560,7 @@ namespace PSRevitAddin.Forms
             Controls.Add(button3);
             Controls.Add(button4);
             Controls.Add(tabControl1);
+            Controls.Add(button2);
             Controls.Add(button1);
             Name = "MainForm";
             Text = "PS 창호설계";

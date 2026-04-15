@@ -744,68 +744,77 @@ namespace PSRevitAddin.Forms
 
         }
 
-        // private void button2_Click_1(object sender, EventArgs e)
-        // {
-        //     try
-        //     {
-        //         DozeOff();
-        //         _eventHandler.ActionToExecute = (app) =>
-        //         {
-        //             UIDocument uiDoc = app.ActiveUIDocument;
-        //             Document doc = app.ActiveUIDocument.Document;
-
-        //             Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
-        //             if (doc.GetElement(pickref.ElementId) is not ImportInstance selectCadLink)
-        //             {
-        //                 MessageBox.Show("선택한 요소가 CAD 링크가 아닙니다.", "알림");
-        //                 return;
-        //             }
-
-        //             using (Transaction trans = new Transaction(doc, "CAD 창호 배치"))
-        //             {
-        //                 trans.Start();
-
-        //                 CadParser parser = new CadParser(doc, selectCadLink);
-        //                 List<CadWindowData> windowDatas = parser.ExtractWindowData();
-
-        //                 if (windowDatas == null || windowDatas.Count == 0)
-        //                 {
-        //                     MessageBox.Show("캐드도면 없음", "알림");
-        //                     trans.RollBack();
-        //                     return;
-        //                 }
-
-        //                 FamilyPlacer placer = new FamilyPlacer(_doc);
-        //                 int successCount = placer.PlaceWindows(windowDatas);
-
-        //                 trans.Commit();
-        //                 MessageBox.Show($"작업 완료! 총 {successCount}개의 패밀리가 성공적으로 배치되었습니다.", "성공");
-        //             }
-        //         };
-
-        //         _externalEvent?.Raise();
-        //         System.Threading.Thread.Sleep(100);
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         MessageBox.Show($"오류:\n{ex.Message}\n\n{ex.StackTrace}", "오류 발생");
-        //     }
-        //     finally
-        //     {
-        //         WakeUp();
-        //     }
-        // }
-
-        private void checkBox8_CheckedChanged(object sender, EventArgs e)
+        private void button2_Click_1(object sender, EventArgs e)
         {
-            //if (checkBox8.Checked) 
-            //{
-            //    m_Visible = true;  
-            //}
-            //else
-            //{
-            //    m_Visible = false;
-            //}
+            try
+            {
+                DozeOff();
+                _eventHandler.ActionToExecute = (app) =>
+                {
+                    UIDocument uiDoc = app.ActiveUIDocument;
+                    Document doc = uiDoc.Document;
+
+                    // 1. 프로젝트 내 기본 창호 패밀리 로드 (필수)
+                    var defaultWindowSymbol = new FilteredElementCollector(doc)
+                        .OfCategory(BuiltInCategory.OST_Windows)
+                        .OfClass(typeof(FamilySymbol))
+                        .Cast<FamilySymbol>()
+                        .FirstOrDefault(s => s.Name == "WINDOW-어셈블") ?? // "WINDOW-어셈블" 우선 검색
+                        new FilteredElementCollector(doc)
+                        .OfCategory(BuiltInCategory.OST_Windows)
+                        .OfClass(typeof(FamilySymbol))
+                        .Cast<FamilySymbol>()
+                        .FirstOrDefault(); // 없으면 첫 번째 창호
+
+                    if (defaultWindowSymbol == null)
+                    {
+                        System.Windows.Forms.MessageBox.Show("프로젝트에 로드된 창호 패밀리가 없습니다.", "오류");
+                        return;
+                    }
+
+                    // 2. 도면 파싱 실행 (PickObject 없이 바로 스캔)
+                    CadParser parser = new CadParser(doc); // 주의: 클래스 멤버 _doc 대신 지역 변수 doc 사용
+                    CadParseResult parsedData = parser.ParseAllCadData();
+
+                    // 파싱된 데이터가 없는 경우 방어 로직 (사용자가 분해를 안 했을 때)
+                    if (parsedData.WallCenterlines.Count == 0 && parsedData.WindowDataList.Count == 0)
+                    {
+                        System.Windows.Forms.MessageBox.Show(
+                            "추출된 도면 데이터가 없습니다.\n\n캐드 도면을 클릭하고 '부분 분해(Partial Explode)'를 먼저 실행해 주세요.",
+                            "알림"
+                        );
+                        return;
+                    }
+
+                    // 3. 3D 모델 자동 배치 실행
+                    // (FamilyPlacer 내부에 Transaction이 있으므로 밖에서 using Transaction 안 씀!)
+                    FamilyPlacer placer = new FamilyPlacer(doc);
+                    placer.ExecutePlacement(parsedData, defaultWindowSymbol);
+
+                    System.Windows.Forms.MessageBox.Show(
+                        $"작업 완료!\n\n- 인식된 벽체 선: {parsedData.WallCenterlines.Count}개\n- 배치된 창호: {parsedData.WindowDataList.Count}개",
+                        "성공"
+                    );
+                };
+
+                // ExternalEvent 실행
+                _externalEvent?.Raise();
+                // 잠시 대기
+                System.Threading.Thread.Sleep(100);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"오류 발생:\n{ex.Message}", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+            finally
+            {
+                WakeUp();
+            }
+        }
+
+private void checkBox8_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
