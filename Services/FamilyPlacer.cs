@@ -4,6 +4,7 @@ using Autodesk.Revit.UI;
 using PSRevitAddin.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PSRevitAddin.Services
 {
@@ -28,29 +29,33 @@ namespace PSRevitAddin.Services
             {
                 trans.Start();
 
+                // ==========================================
                 // 1. 벽체 생성
+                // ==========================================
                 Level defaultLevel = _doc.ActiveView.GenLevel;
-                
+
                 // "일반 - 200mm" 벽 유형을 찾기, 없으면 기본 벽 유형 사용
                 WallType wallType200mm = new FilteredElementCollector(_doc)
                     .OfClass(typeof(WallType))
                     .Cast<WallType>()
                     .FirstOrDefault(w => w.Name.Contains("200mm") || w.Name == "일반 - 200mm");
-                
-                ElementId wallTypeId = wallType200mm != null 
-                    ? wallType200mm.Id 
+
+                ElementId wallTypeId = wallType200mm != null
+                    ? wallType200mm.Id
                     : _doc.GetDefaultElementTypeId(ElementTypeGroup.WallType);
-                
+
                 // 벽체 생성 (높이 3000mm = 약 9.84 feet)
                 foreach (var line in parsedData.WallCenterlines)
                 {
                     Wall.Create(_doc, line, wallTypeId, defaultLevel.Id, 3000.0 / 304.8, 0, false, false);
                 }
 
-                // [필수] 벽 생성 후 DB 갱신
+                // [필수] 벽 생성 후 교차점 계산을 위해 DB 갱신
                 _doc.Regenerate();
 
-                // 2. 창호 배치
+                // ==========================================
+                // 2. 창호 생성 및 배치
+                // ==========================================
                 var allWindowSymbols = new FilteredElementCollector(_doc)
                     .OfCategory(BuiltInCategory.OST_Windows)
                     .OfClass(typeof(FamilySymbol))
@@ -64,16 +69,61 @@ namespace PSRevitAddin.Services
 
                 foreach (var winData in parsedData.WindowDataList)
                 {
-                    // 마크와 일치하는 패밀리 찾기 (없으면 기본 창호 사용)
-                    FamilySymbol symbol = allWindowSymbols.FirstOrDefault(s => 
+                    // 마크와 일치하는 '원본 거푸집' 패밀리 찾기 (없으면 매개변수로 받은 기본 창호 사용)
+                    FamilySymbol baseSymbol = allWindowSymbols.FirstOrDefault(s =>
                         s.Name == winData.Mark ||
                         (s.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_MARK) != null &&
-                         s.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_MARK).AsString() == winData.Mark)) 
+                         s.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_MARK).AsString() == winData.Mark))
                         ?? defaultWindowSymbol;
 
-                    if (symbol == null) continue;
-                    if (!symbol.IsActive) symbol.Activate();
+                    if (baseSymbol == null) continue;
 
+                    // ---------------------------------------------------------
+                    // 🌟 [핵심] 치수에 맞게 새로운 유형 복제 (Duplicate) 🌟
+                    // ---------------------------------------------------------
+
+                    // mm 단위로 변환해서 직관적인 새 유형 이름 만들기 (예: "W1500_H2000")
+                    double widthMm = winData.Width * 304.8;
+                    double heightMm = winData.Height * 304.8;
+                    string newTypeName = $"W{widthMm:0}_H{heightMm:0}";
+
+                    if (!string.IsNullOrEmpty(winData.Mark))
+                    {
+                        newTypeName = $"{winData.Mark}_{newTypeName}"; // 예: "BPW_W1500_H2000"
+                    }
+
+                    // 같은 Family 내에서 방금 지은 이름의 유형이 이미 있는지 확인
+                    FamilySymbol targetSymbol = null;
+                    foreach (ElementId symbolId in baseSymbol.Family.GetFamilySymbolIds())
+                    {
+                        FamilySymbol existingSymbol = _doc.GetElement(symbolId) as FamilySymbol;
+                        if (existingSymbol != null && existingSymbol.Name == newTypeName)
+                        {
+                            targetSymbol = existingSymbol;
+                            break;
+                        }
+                    }
+
+                    // 없으면 새로 복제하고 치수 기입
+                    if (targetSymbol == null)
+                    {
+                        targetSymbol = baseSymbol.Duplicate(newTypeName) as FamilySymbol;
+
+                        // 복제된 새 유형에 치수 및 마크 입력 (유형 속성)
+                        SetSymbolParameter(targetSymbol, new[] { "Width", "폭", "너비", "Nominal Width", "최소 폭" }, winData.Width);
+                        SetSymbolParameter(targetSymbol, new[] { "Height", "높이", "Nominal Height", "최소 높이" }, winData.Height);
+                        SetSymbolParameter(targetSymbol, new[] { "Sill Height", "씰 높이", "씰높이", "하부 높이" }, winData.SillHeight);
+                        SetSymbolParameterString(targetSymbol, new[] { "Type Mark", "유형마크", "Mark" }, winData.Mark);
+                    }
+
+                    // 새로 만든 심볼(또는 이미 있던 심볼)을 활성화
+                    if (!targetSymbol.IsActive) targetSymbol.Activate();
+                    // ---------------------------------------------------------
+
+
+                    // ---------------------------------------------------------
+                    // 3. 교차점 찾기 및 3D 배치
+                    // ---------------------------------------------------------
                     XYZ insertPoint = null;
                     Wall hostwall = null;
 
@@ -84,7 +134,9 @@ namespace PSRevitAddin.Services
                         Curve wallLine = wallCurve.Curve;
                         Curve winLine = winData.CenterLine;
                         IntersectionResultArray results = null;
+
                         SetComparisonResult result = wallLine.Intersect(winLine, out results);
+
                         if (result == SetComparisonResult.Overlap && results != null && results.Size > 0)
                         {
                             for (int i = 0; i < results.Size; i++)
@@ -108,95 +160,33 @@ namespace PSRevitAddin.Services
                         insertPoint = winData.Location;
                     }
 
+                    // 창호 실제 배치 (복제된 targetSymbol 사용)
                     if (hostwall != null && insertPoint != null)
                     {
                         Level winLevel = _doc.GetElement(hostwall.LevelId) as Level;
+
+                        // 씰높이만큼 Z축 오프셋 적용
+                        XYZ finalInsertPoint = new XYZ(insertPoint.X, insertPoint.Y, insertPoint.Z + winData.SillHeight);
+
                         FamilyInstance windowInst = _doc.Create.NewFamilyInstance(
-                            insertPoint, 
-                            symbol, 
-                            hostwall, 
-                            winLevel, 
+                            finalInsertPoint,
+                            targetSymbol, // 원본이 아닌 '복제본' 지정!
+                            hostwall,
+                            winLevel,
                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-                        // [추가] 유형 특성(타입 파라미터)에 치수 입력
-                        try
-                        {
-                            string[] widthParamNames = { "Width", "폭", "너비", "Nominal Width", "최소 폭" };
-                            foreach (var paramName in widthParamNames)
-                            {
-                                Parameter widthParam = symbol.LookupParameter(paramName);
-                                if (widthParam != null && !widthParam.IsReadOnly && winData.Width > 0)
-                                {
-                                    widthParam.Set(winData.Width);
-                                    break;
-                                }
-                            }
-                            string[] heightParamNames = { "Height", "높이", "Nominal Height", "최소 높이" };
-                            foreach (var paramName in heightParamNames)
-                            {
-                                Parameter heightParam = symbol.LookupParameter(paramName);
-                                if (heightParam != null && !heightParam.IsReadOnly && winData.Height > 0)
-                                {
-                                    heightParam.Set(winData.Height);
-                                    break;
-                                }
-                            }
-                        }
-                        catch { /* 무시 */ }
+                        // 인스턴스 파라미터에도 씰높이 저장
+                        Parameter sillParam = windowInst.LookupParameter("Sill Height") 
+                            ?? windowInst.LookupParameter("씰 높이")
+                            ?? windowInst.LookupParameter("씰높이");
+                        if (sillParam != null && !sillParam.IsReadOnly && winData.SillHeight > 0)
+                            sillParam.Set(winData.SillHeight);
 
-                        // [추가] CAD에서 읽은 창호 유형(마크)을 FamilySymbol(타입 파라미터)에 저장
-                        try
+                        // 인스턴스의 Mark(마크) 매개변수에도 값 넣어주기
+                        Parameter instMarkParam = windowInst.LookupParameter("Mark");
+                        if (instMarkParam != null && !instMarkParam.IsReadOnly && !string.IsNullOrEmpty(winData.Mark))
                         {
-                            string[] markParamNames = { "Type Mark", "유형마크", "Mark" };
-                            foreach (var paramName in markParamNames)
-                            {
-                                Parameter typeMarkParam = symbol.LookupParameter(paramName);
-                                if (typeMarkParam != null && !typeMarkParam.IsReadOnly && !string.IsNullOrEmpty(winData.Mark))
-                                {
-                                    typeMarkParam.Set(winData.Mark);
-                                    break;
-                                }
-                            }
-                        }
-                        catch { /* 무시 */ }
-
-                        // 🔧 [추가] CAD에서 읽은 데이터를 Revit 매개변수에 저장
-                        try
-                        {
-                            // 1. Mark (유형마크) - CAD에서 읽은 마크로 설정 (예: "BPW")
-                            Parameter markParam = windowInst.LookupParameter("Mark");
-                            if (markParam != null && !markParam.IsReadOnly && !string.IsNullOrEmpty(winData.Mark))
-                            {
-                                markParam.Set(winData.Mark);
-                            }
-                            
-                            // 2. Width - 여러 이름 시도 (Width, 폭, 너비 등)
-                            string[] widthParamNames = { "Width", "폭", "너비", "Nominal Width", "최소 폭" };
-                            foreach (var paramName in widthParamNames)
-                            {
-                                Parameter widthParam = windowInst.LookupParameter(paramName);
-                                if (widthParam != null && !widthParam.IsReadOnly && winData.Width > 0)
-                                {
-                                    widthParam.Set(winData.Width);
-                                    break;
-                                }
-                            }
-                            
-                            // 3. Height - 여러 이름 시도 (Height, 높이 등)
-                            string[] heightParamNames = { "Height", "높이", "Nominal Height", "최소 높이" };
-                            foreach (var paramName in heightParamNames)
-                            {
-                                Parameter heightParam = windowInst.LookupParameter(paramName);
-                                if (heightParam != null && !heightParam.IsReadOnly && winData.Height > 0)
-                                {
-                                    heightParam.Set(winData.Height);
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception paramEx)
-                        {
-                            // 매개변수 설정 실패해도 창호는 배치됨
+                            instMarkParam.Set(winData.Mark);
                         }
                     }
                 }
@@ -205,114 +195,42 @@ namespace PSRevitAddin.Services
             }
         }
 
-        public int PlaceWindows(List<CadWindowData> dataList)
+        // ==========================================
+        // 유틸리티 및 헬퍼 메서드 모음
+        // ==========================================
+
+        /// <summary>
+        /// 여러 파라미터 이름 중 일치하는 것을 찾아 숫자(피트) 값을 입력합니다.
+        /// </summary>
+        private void SetSymbolParameter(FamilySymbol symbol, string[] paramNames, double value)
         {
-            int successCount = 0;
-            var allWindowSymbols = new FilteredElementCollector(_doc).OfCategory(BuiltInCategory.OST_Windows).OfClass(typeof(Wall)).Cast<FamilySymbol>().ToList();
-            var walls = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(Wall)).Cast<Wall>().ToList();
-            using (Transaction trans = new Transaction(_doc, "cad 배치"))
+            if (value <= 0) return;
+            foreach (var paramName in paramNames)
             {
-                trans.Start();
-                foreach (var data in dataList)
+                Parameter param = symbol.LookupParameter(paramName);
+                if (param != null && !param.IsReadOnly)
                 {
-                    FamilySymbol symbol = allWindowSymbols.FirstOrDefault(s => s.Name == data.Mark);
-                    if (symbol == null) continue;
-                    if (!symbol.IsActive) symbol.Activate();
-
-                    Wall hostwall = Utility.FindNearestWall(walls, data.Location);
-                    if (hostwall != null)
-                    {
-                        Level level = _doc.GetElement(hostwall.LevelId) as Level;
-                        FamilyInstance windowInst = _doc.Create.NewFamilyInstance(data.Location, symbol, hostwall, level, Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
-                        
-                        // [추가] 유형 특성(타입 파라미터)에 치수 입력
-                        try
-                        {
-                            string[] widthParamNames = { "Width", "폭", "너비", "Nominal Width", "최소 폭" };
-                            foreach (var paramName in widthParamNames)
-                            {
-                                Parameter widthParam = symbol.LookupParameter(paramName);
-                                if (widthParam != null && !widthParam.IsReadOnly && data.Width > 0)
-                                {
-                                    widthParam.Set(data.Width);
-                                    break;
-                                }
-                            }
-                            string[] heightParamNames = { "Height", "높이", "Nominal Height", "최소 높이" };
-                            foreach (var paramName in heightParamNames)
-                            {
-                                Parameter heightParam = symbol.LookupParameter(paramName);
-                                if (heightParam != null && !heightParam.IsReadOnly && data.Height > 0)
-                                {
-                                    heightParam.Set(data.Height);
-                                    break;
-                                }
-                            }
-                        }
-                        catch { /* 무시 */ }
-
-                        // [추가] CAD에서 읽은 창호 유형(마크)을 FamilySymbol(타입 파라미터)에 저장
-                        try
-                        {
-                            string[] markParamNames = { "Type Mark", "유형마크", "Mark" };
-                            foreach (var paramName in markParamNames)
-                            {
-                                Parameter typeMarkParam = symbol.LookupParameter(paramName);
-                                if (typeMarkParam != null && !typeMarkParam.IsReadOnly && !string.IsNullOrEmpty(data.Mark))
-                                {
-                                    typeMarkParam.Set(data.Mark);
-                                    break;
-                                }
-                            }
-                        }
-                        catch { /* 무시 */ }
-
-                        // 🔧 [추가] CAD에서 읽은 데이터를 Revit 매개변수에 저장
-                        try
-                        {
-                            // 1. Mark (유형마크) - CAD에서 읽은 마크로 설정 (예: "BPW")
-                            Parameter markParam = windowInst.LookupParameter("Mark");
-                            if (markParam != null && !markParam.IsReadOnly && !string.IsNullOrEmpty(data.Mark))
-                            {
-                                markParam.Set(data.Mark);
-                            }
-                            
-                            // 2. Width - 여러 이름 시도 (Width, 폭, 너비 등)
-                            string[] widthParamNames = { "Width", "폭", "너비", "Nominal Width", "최소 폭" };
-                            foreach (var paramName in widthParamNames)
-                            {
-                                Parameter widthParam = windowInst.LookupParameter(paramName);
-                                if (widthParam != null && !widthParam.IsReadOnly && data.Width > 0)
-                                {
-                                    widthParam.Set(data.Width);
-                                    break;
-                                }
-                            }
-                            
-                            // 3. Height - 여러 이름 시도 (Height, 높이 등)
-                            string[] heightParamNames = { "Height", "높이", "Nominal Height", "최소 높이" };
-                            foreach (var paramName in heightParamNames)
-                            {
-                                Parameter heightParam = windowInst.LookupParameter(paramName);
-                                if (heightParam != null && !heightParam.IsReadOnly && data.Height > 0)
-                                {
-                                    heightParam.Set(data.Height);
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception paramEx)
-                        {
-                            // 매개변수 설정 실패해도 창호는 배치됨
-                        }
-                        
-                        successCount++;
-                    }
+                    param.Set(value);
+                    break; // 성공하면 루프 종료
                 }
-
-                trans.Commit();
             }
-            return successCount;
+        }
+
+        /// <summary>
+        /// 여러 파라미터 이름 중 일치하는 것을 찾아 문자열 값을 입력합니다.
+        /// </summary>
+        private void SetSymbolParameterString(FamilySymbol symbol, string[] paramNames, string value)
+        {
+            if (string.IsNullOrEmpty(value)) return;
+            foreach (var paramName in paramNames)
+            {
+                Parameter param = symbol.LookupParameter(paramName);
+                if (param != null && !param.IsReadOnly)
+                {
+                    param.Set(value);
+                    break; // 성공하면 루프 종료
+                }
+            }
         }
 
         /// <summary>
@@ -320,7 +238,7 @@ namespace PSRevitAddin.Services
         /// </summary>
         private bool IsPointOnSegment(XYZ point, Curve segment)
         {
-            const double tolerance = 0.001; // mm 단위
+            const double tolerance = 0.001; // 피트 단위 공차
 
             XYZ p1 = segment.GetEndPoint(0);
             XYZ p2 = segment.GetEndPoint(1);
@@ -330,11 +248,11 @@ namespace PSRevitAddin.Services
             double vLen = v.GetLength();
             if (vLen < tolerance) return false;
 
-            // 외적으로 점이 선 위에 있는지 확인 (직선 방정식)
+            // 외적으로 점이 직선(무한선) 위에 있는지 확인
             XYZ cross = v.CrossProduct(w);
             if (cross.GetLength() > tolerance) return false;
 
-            // 내적으로 점이 선분 범위 내에 있는지 확인
+            // 내적으로 점이 선분의 양 끝점(p1, p2) 사이에 있는지 확인
             double t = w.DotProduct(v) / (vLen * vLen);
             return t >= -tolerance && t <= 1 + tolerance;
         }
@@ -366,9 +284,9 @@ namespace PSRevitAddin.Services
             XYZ v = p2 - p1;
             XYZ w = point - p1;
             double vlen2 = v.DotProduct(v);
-            
+
             if (vlen2 < 0.001) return 0;
-            
+
             return w.DotProduct(v) / vlen2;
         }
 
