@@ -21,28 +21,59 @@ namespace PSRevitAddin.Services
         public double Height { get; set; }
         public XYZ Location { get; set; }
         public Curve CenterLine { get; set; }
+    }
 
+    public class CadParseResult
+    {
+        public List<Curve> WallCenterlines { get; set; } = new List<Curve>();
+        public List<CadWindowData> WindowDataList { get; set; } = new List<CadWindowData>();
     }
     
     
     public class CadParser
     {
         private Document _doc;
-        private ImportInstance _cad;
 
-        public CadParser(Document doc, ImportInstance cad)
+        public CadParser(Document doc)
         {
-            _doc= doc;  
-            _cad= cad;  
+            _doc = doc;
+        }
+
+
+        public CadParseResult ParseAllCadData()
+        {
+            CadParseResult result = new CadParseResult();
+
+            // 1. 벽체 중심선 추출
+            var wallLines = new FilteredElementCollector(_doc, _doc.ActiveView.Id)
+                .OfClass(typeof(CurveElement))
+                .Cast<CurveElement>()
+                .Where(x => x.LineStyle.Name.Contains("라인") )
+                .Select(x => x.GeometryCurve)
+                .ToList();
+            result.WallCenterlines = wallLines;
+
+            // 2. 창호 데이터 추출
+            result.WindowDataList = ExtractWindowData();
+
+            return result;
         }
 
         public List<CadWindowData> ExtractWindowData()
         {
-
             List<CadWindowData> results = new List<CadWindowData>();
 
-            var detailLines = new FilteredElementCollector(_doc, _doc.ActiveView.Id).OfClass(typeof(CurveElement)).Cast<CurveElement>().Where(x => x.LineStyle.Name.Contains("창호선")).ToList();
-            var textNotes = new FilteredElementCollector(_doc, _doc.ActiveView.Id) .OfClass(typeof(TextNote)) .Cast<TextNote>() .Where(x => x.TextNoteType.Name.Contains("창호텍스트")).ToList();
+            var detailLines = new FilteredElementCollector(_doc, _doc.ActiveView.Id)
+                .OfClass(typeof(CurveElement))
+                .Cast<CurveElement>()
+                .Where(x => x.LineStyle.Name.Contains("창생성"))
+                .ToList();
+            
+            var textNotes = new FilteredElementCollector(_doc, _doc.ActiveView.Id)
+                .OfClass(typeof(TextNote))
+                .Cast<TextNote>()
+                .Where(x => x.TextNoteType.Name.Contains("창호정리_2-돋움체-23"))
+                .ToList();
 
             foreach (var lineElement in detailLines)
             {
@@ -58,10 +89,11 @@ namespace PSRevitAddin.Services
 
                 if (nearestText != null)
                 {
-                    var data = new CadWindowData(); 
+                    var data = new CadWindowData();
                     data.Location = midpoint;
                     data.CenterLine = curve;
                     string rawText = nearestText.Text;
+                    
                     if (rawText.Contains("_"))
                     {
                         data.Mark = Utility.ParseTypeCode(rawText);
@@ -74,11 +106,10 @@ namespace PSRevitAddin.Services
                         }
                     }
                     results.Add(data);
-                }      
+                }
             }
 
-            return results; 
-            
+            return results;
         }
     }
 
