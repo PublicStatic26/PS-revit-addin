@@ -94,7 +94,160 @@ namespace PSRevitAddin.Forms
             comboBox6.Items.Add("PVC");
             comboBox6.Items.Add("복합 (Combination)");
 
+            LoadDummyProducts();
             RefreshProductCards();
+        }
+
+        /// <summary>
+        /// feature/db-query 브랜치 머지 전까지 사용하는 임시 더미 데이터.
+        /// ProductCatalog.GetAllProducts() 구현 완료 후 이 메서드를 삭제하고
+        /// _allProducts = _catalog.GetAllProducts(); 로 교체한다.
+        /// </summary>
+        private void LoadDummyProducts()
+        {
+            _allProducts = new List<VendorProduct>
+            {
+                // ── Eagon ─────────────────────────────────────────────
+                new VendorProduct
+                {
+                    VendorName    = "Eagon",
+                    ProductName   = "이건창호 E350",
+                    ModelNumber   = "E350-AL",
+                    FrameType     = FrameType.Aluminum,
+                    GlassType     = GlassType.LowE,
+                    OpeningMethod = OpeningMethod.Sliding,
+                    IsInsulated   = true,
+                    IsFireRated   = false,
+                    IsAutoOpening = false,
+                    MinWidthMm    = 600,  MaxWidthMm  = 2400,
+                    MinHeightMm   = 900,  MaxHeightMm = 2100,
+                    UnitPrice     = 850000
+                },
+                new VendorProduct
+                {
+                    VendorName    = "Eagon",
+                    ProductName   = "이건창호 E500 방화",
+                    ModelNumber   = "E500-FR",
+                    FrameType     = FrameType.AlPvc,
+                    GlassType     = GlassType.Triple,
+                    OpeningMethod = OpeningMethod.CasementSwing,
+                    IsInsulated   = true,
+                    IsFireRated   = true,
+                    IsAutoOpening = false,
+                    MinWidthMm    = 800,  MaxWidthMm  = 2000,
+                    MinHeightMm   = 1000, MaxHeightMm = 2400,
+                    UnitPrice     = 1200000
+                },
+                new VendorProduct
+                {
+                    VendorName    = "Eagon",
+                    ProductName   = "이건창호 E200 전동",
+                    ModelNumber   = "E200-AUTO",
+                    FrameType     = FrameType.Aluminum,
+                    GlassType     = GlassType.Double,
+                    OpeningMethod = OpeningMethod.LiftSliding,
+                    IsInsulated   = false,
+                    IsFireRated   = false,
+                    IsAutoOpening = true,
+                    MinWidthMm    = 1200, MaxWidthMm  = 3600,
+                    MinHeightMm   = 1200, MaxHeightMm = 2400,
+                    UnitPrice     = 1500000
+                },
+
+                // ── LX Z:IN ──────────────────────────────────────────
+                new VendorProduct
+                {
+                    VendorName    = "LX Z:IN",
+                    ProductName   = "슈퍼세이브5",
+                    ModelNumber   = "SS5-1200",
+                    FrameType     = FrameType.AlPvc,
+                    GlassType     = GlassType.Triple,
+                    OpeningMethod = OpeningMethod.TurnTilt,
+                    IsInsulated   = true,
+                    IsFireRated   = false,
+                    IsAutoOpening = false,
+                    MinWidthMm    = 500,  MaxWidthMm  = 2000,
+                    MinHeightMm   = 700,  MaxHeightMm = 2200,
+                    UnitPrice     = 980000
+                },
+                new VendorProduct
+                {
+                    VendorName    = "LX Z:IN",
+                    ProductName   = "슈퍼세이브7 방화",
+                    ModelNumber   = "SS7-FR",
+                    FrameType     = FrameType.Pvc,
+                    GlassType     = GlassType.Vacuum,
+                    OpeningMethod = OpeningMethod.Fixed,
+                    IsInsulated   = true,
+                    IsFireRated   = true,
+                    IsAutoOpening = false,
+                    MinWidthMm    = 600,  MaxWidthMm  = 1800,
+                    MinHeightMm   = 800,  MaxHeightMm = 2000,
+                    UnitPrice     = 1350000
+                },
+                new VendorProduct
+                {
+                    VendorName    = "LX Z:IN",
+                    ProductName   = "슈퍼세이브3 전동",
+                    ModelNumber   = "SS3-AUTO",
+                    FrameType     = FrameType.Aluminum,
+                    GlassType     = GlassType.LowE,
+                    OpeningMethod = OpeningMethod.ParallelSliding,
+                    IsInsulated   = false,
+                    IsFireRated   = false,
+                    IsAutoOpening = true,
+                    MinWidthMm    = 1000, MaxWidthMm  = 4000,
+                    MinHeightMm   = 1000, MaxHeightMm = 2600,
+                    UnitPrice     = 1700000
+                },
+
+                // ── Jinheung ─────────────────────────────────────────
+                new VendorProduct
+                {
+                    VendorName    = "Jinheung",
+                    ProductName   = "진흥 JH-300",
+                    ModelNumber   = "JH300-PVC",
+                    FrameType     = FrameType.Pvc,
+                    GlassType     = GlassType.Double,
+                    OpeningMethod = OpeningMethod.Sliding,
+                    IsInsulated   = true,
+                    IsFireRated   = false,
+                    IsAutoOpening = false,
+                    MinWidthMm    = 600,  MaxWidthMm  = 2200,
+                    MinHeightMm   = 800,  MaxHeightMm = 2000,
+                    UnitPrice     = 720000
+                },
+                new VendorProduct
+                {
+                    VendorName    = "Jinheung",
+                    ProductName   = "진흥 JH-500 방화",
+                    ModelNumber   = "JH500-FR",
+                    FrameType     = FrameType.Combination,
+                    GlassType     = GlassType.Tempered,
+                    OpeningMethod = OpeningMethod.CasementSwing,
+                    IsInsulated   = true,
+                    IsFireRated   = true,
+                    IsAutoOpening = false,
+                    MinWidthMm    = 700,  MaxWidthMm  = 1800,
+                    MinHeightMm   = 900,  MaxHeightMm = 2200,
+                    UnitPrice     = 1100000
+                },
+                new VendorProduct
+                {
+                    VendorName    = "Jinheung",
+                    ProductName   = "진흥 JH-700 전동",
+                    ModelNumber   = "JH700-AUTO",
+                    FrameType     = FrameType.Aluminum,
+                    GlassType     = GlassType.LowE,
+                    OpeningMethod = OpeningMethod.LiftSliding,
+                    IsInsulated   = true,
+                    IsFireRated   = false,
+                    IsAutoOpening = true,
+                    MinWidthMm    = 1200, MaxWidthMm  = 3600,
+                    MinHeightMm   = 1200, MaxHeightMm = 2800,
+                    UnitPrice     = 1900000
+                },
+            };
         }
 
         /// <summary>
