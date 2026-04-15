@@ -1,0 +1,16 @@
+# 기본: Git이 텍스트 파일을 자동 감지해서 줄 끝 정규화
+* text=auto
+
+# C# 소스는 Windows CRLF로 고정 (Revit 애드인 → Windows 전용)
+*.cs   text eol=crlf
+*.csproj text eol=crlf
+*.sln  text eol=crlf
+*.xml  text eol=crlf
+*.json text eol=crlf
+
+# 바이너리는 줄 끝 변환 안 함
+*.png  binary
+*.jpg  binary
+*.dll  binary
+*.rfa  binary
+*.xlsx binary
