@@ -98,7 +98,7 @@ namespace PSRevitAddin.Forms
             button2.TabIndex = 1;
             button2.Text = "Create WIn";
             button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click_1;
+            //button2.Click += button2_Click_1;
             // 
             // comboBox1
             // 
@@ -534,7 +534,9 @@ namespace PSRevitAddin.Forms
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
-            button4.Text = "생성기";
+
+            button4.Text = "Import DB";
+
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
