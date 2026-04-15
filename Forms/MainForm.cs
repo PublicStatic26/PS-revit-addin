@@ -551,7 +551,7 @@ namespace PSRevitAddin.Forms
             }
         }
 
-       
+
 
         private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
@@ -670,9 +670,9 @@ namespace PSRevitAddin.Forms
 
 
         private void MainForm_Load(object sender, EventArgs e)
-                {
+        {
 
-                }
+        }
 
         private void button2_Click_1(object sender, EventArgs e)
         {
@@ -713,9 +713,7 @@ namespace PSRevitAddin.Forms
                     }
                 };
 
-                // ExternalEvent 실행
                 _externalEvent?.Raise();
-                // 잠시 대기
                 System.Threading.Thread.Sleep(100);
             }
             catch (Exception ex)
