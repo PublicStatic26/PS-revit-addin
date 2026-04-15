@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using TaskDialog = Autodesk.Revit.UI.TaskDialog;
 using Panel = System.Windows.Forms.Panel;
@@ -40,6 +41,23 @@ namespace PSRevitAddin.Forms
             _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
             _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
+            LoadWindowTypes();
+        }
+
+        private void LoadWindowTypes()
+        {
+            comboBox7.Items.Clear();
+            comboBox7.Items.Add("모든 창호 유형 선택");
+
+            var symbols = new FilteredElementCollector(_doc)
+                .OfClass(typeof(FamilySymbol))
+                .Cast<FamilySymbol>()
+                .Where(s => s.FamilyName == "WINDOW-어셈블")
+                .OrderBy(s => s.Name)
+                .ToList();
+
+            foreach (var symbol in symbols)
+                comboBox7.Items.Add(symbol.Name);
         }
 
         /// <summary>
@@ -710,7 +728,7 @@ namespace PSRevitAddin.Forms
                 string selectedTypeName = comboBox7.SelectedItem?.ToString() ?? "";
                 if (string.IsNullOrEmpty(selectedTypeName)) return;
 
-                _selectedProduct.SymbolCode = selectedTypeName;
+                bool applyAll = selectedTypeName == "모든 창호 유형 선택";
                 var productToApply = _selectedProduct;
 
                 DozeOff();
@@ -718,7 +736,46 @@ namespace PSRevitAddin.Forms
                 {
                     Document doc = app.ActiveUIDocument.Document;
                     var updater = new ParameterUpdater(doc);
-                    updater.UpdateFamilyType([productToApply]);
+
+                    if (applyAll)
+                    {
+                        // WINDOW-어셈블의 모든 유형에 적용
+                        var allTypes = new FilteredElementCollector(doc)
+                            .OfClass(typeof(FamilySymbol))
+                            .Cast<FamilySymbol>()
+                            .Where(s => s.FamilyName == "WINDOW-어셈블")
+                            .Select(s => s.Name)
+                            .ToList();
+
+                        var products = allTypes.Select(typeName =>
+                        {
+                            var p = new VendorProduct
+                            {
+                                SymbolCode = typeName,
+                                VendorName = productToApply.VendorName,
+                                ProductName = productToApply.ProductName,
+                                ModelNumber = productToApply.ModelNumber,
+                                OpeningMethod = productToApply.OpeningMethod,
+                                IsFireRated = productToApply.IsFireRated,
+                                IsInsulated = productToApply.IsInsulated,
+                                GlassType = productToApply.GlassType,
+                                FrameType = productToApply.FrameType,
+                                MinWidthMm = productToApply.MinWidthMm,
+                                MaxWidthMm = productToApply.MaxWidthMm,
+                                MinHeightMm = productToApply.MinHeightMm,
+                                MaxHeightMm = productToApply.MaxHeightMm,
+                                UnitPrice = productToApply.UnitPrice,
+                            };
+                            return p;
+                        }).ToList();
+
+                        updater.UpdateFamilyType(products);
+                    }
+                    else
+                    {
+                        productToApply.SymbolCode = selectedTypeName;
+                        updater.UpdateFamilyType([productToApply]);
+                    }
                 };
 
                 _externalEvent?.Raise();
