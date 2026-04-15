@@ -674,57 +674,57 @@ namespace PSRevitAddin.Forms
 
         }
 
-        private void button2_Click_1(object sender, EventArgs e)
-        {
-            try
-            {
-                DozeOff();
-                _eventHandler.ActionToExecute = (app) =>
-                {
-                    UIDocument uiDoc = app.ActiveUIDocument;
-                    Document doc = app.ActiveUIDocument.Document;
+        // private void button2_Click_1(object sender, EventArgs e)
+        // {
+        //     try
+        //     {
+        //         DozeOff();
+        //         _eventHandler.ActionToExecute = (app) =>
+        //         {
+        //             UIDocument uiDoc = app.ActiveUIDocument;
+        //             Document doc = app.ActiveUIDocument.Document;
 
-                    Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
-                    if (doc.GetElement(pickref.ElementId) is not ImportInstance selectCadLink)
-                    {
-                        MessageBox.Show("선택한 요소가 CAD 링크가 아닙니다.", "알림");
-                        return;
-                    }
+        //             Reference pickref = uiDoc.Selection.PickObject(Autodesk.Revit.UI.Selection.ObjectType.Element, "피싱할 캐드 링크 선택");
+        //             if (doc.GetElement(pickref.ElementId) is not ImportInstance selectCadLink)
+        //             {
+        //                 MessageBox.Show("선택한 요소가 CAD 링크가 아닙니다.", "알림");
+        //                 return;
+        //             }
 
-                    using (Transaction trans = new Transaction(doc, "CAD 창호 배치"))
-                    {
-                        trans.Start();
+        //             using (Transaction trans = new Transaction(doc, "CAD 창호 배치"))
+        //             {
+        //                 trans.Start();
 
-                        CadParser parser = new CadParser(doc, selectCadLink);
-                        List<CadWindowData> windowDatas = parser.ExtractWindowData();
+        //                 CadParser parser = new CadParser(doc, selectCadLink);
+        //                 List<CadWindowData> windowDatas = parser.ExtractWindowData();
 
-                        if (windowDatas == null || windowDatas.Count == 0)
-                        {
-                            MessageBox.Show("캐드도면 없음", "알림");
-                            trans.RollBack();
-                            return;
-                        }
+        //                 if (windowDatas == null || windowDatas.Count == 0)
+        //                 {
+        //                     MessageBox.Show("캐드도면 없음", "알림");
+        //                     trans.RollBack();
+        //                     return;
+        //                 }
 
-                        FamilyPlacer placer = new FamilyPlacer(_doc);
-                        int successCount = placer.PlaceWindows(windowDatas);
+        //                 FamilyPlacer placer = new FamilyPlacer(_doc);
+        //                 int successCount = placer.PlaceWindows(windowDatas);
 
-                        trans.Commit();
-                        MessageBox.Show($"작업 완료! 총 {successCount}개의 패밀리가 성공적으로 배치되었습니다.", "성공");
-                    }
-                };
+        //                 trans.Commit();
+        //                 MessageBox.Show($"작업 완료! 총 {successCount}개의 패밀리가 성공적으로 배치되었습니다.", "성공");
+        //             }
+        //         };
 
-                _externalEvent?.Raise();
-                System.Threading.Thread.Sleep(100);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"오류:\n{ex.Message}\n\n{ex.StackTrace}", "오류 발생");
-            }
-            finally
-            {
-                WakeUp();
-            }
-        }
+        //         _externalEvent?.Raise();
+        //         System.Threading.Thread.Sleep(100);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         MessageBox.Show($"오류:\n{ex.Message}\n\n{ex.StackTrace}", "오류 발생");
+        //     }
+        //     finally
+        //     {
+        //         WakeUp();
+        //     }
+        // }
 
         private void checkBox8_CheckedChanged(object sender, EventArgs e)
         {
