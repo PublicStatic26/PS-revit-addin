@@ -17,6 +17,9 @@ namespace PSRevitAddin.Models
     {
         // ─── 제조사 / 제품 식별 ───────────────────────────────────────
 
+        /// <summary>일람표 기호. 예: "WD-01"</summary>
+        public string SymbolCode {get; set;} = string.Empty;
+        
         /// <summary>제조사명. 예: "LG하우시스"</summary>
         public string VendorName { get; set; } = string.Empty;
 
@@ -47,6 +50,9 @@ namespace PSRevitAddin.Models
 
         /// <summary>단열 성능 적용 여부</summary>
         public bool IsInsulated { get; set; }
+
+        /// <summary>자동 개폐 기능 여부</summary>
+        public bool IsAutoOpening { get; set; }
 
         /// <summary>유리 종류</summary>
         public GlassType GlassType { get; set; }

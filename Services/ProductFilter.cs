@@ -20,6 +20,12 @@ namespace PSRevitAddin.Services
         // ─── 필터 조건 ────────────────────────────────────────────────
         // null = 해당 조건 미적용 (모든 제품 통과)
 
+        /// <summary>
+        /// 표시할 제조사 이름 목록.
+        /// 비어있으면 모든 제조사 통과, 하나라도 있으면 목록에 있는 제조사만 통과.
+        /// </summary>
+        public List<string> SelectedVendors { get; set; } = new List<string>();
+
         /// <summary>창호/문 프레임 재질 조건</summary>
         public FrameType? SelectedFrame { get; set; }
 
@@ -34,6 +40,9 @@ namespace PSRevitAddin.Services
 
         /// <summary>단열 성능 필수 여부 (true면 단열 제품만 통과)</summary>
         public bool FilterInsulated { get; set; }
+
+        /// <summary>자동 개폐 필수 여부 (true면 자동 개폐 제품만 통과)</summary>
+        public bool FilterAutoOpening { get; set; }
 
         // ─── 사이즈 조건 ──────────────────────────────────────────────
         // 0 = 미입력 (사이즈 조건 미적용)
@@ -56,6 +65,12 @@ namespace PSRevitAddin.Services
 
             foreach (VendorProduct product in products)
             {
+                // 제조사 조건 (선택된 제조사가 없으면 전체 통과)
+                if (SelectedVendors.Count > 0 && !SelectedVendors.Contains(product.VendorName))
+                {
+                    continue;
+                }
+
                 // 방화 조건
                 if (FilterFireRated && !product.IsFireRated)
                 {
@@ -64,6 +79,12 @@ namespace PSRevitAddin.Services
 
                 // 단열 조건
                 if (FilterInsulated && !product.IsInsulated)
+                {
+                    continue;
+                }
+
+                // 자동 개폐 조건
+                if (FilterAutoOpening && !product.IsAutoOpening)
                 {
                     continue;
                 }
@@ -113,11 +134,13 @@ namespace PSRevitAddin.Services
         /// <summary>모든 필터 조건을 초기 상태로 되돌린다.</summary>
         public void Reset()
         {
+            SelectedVendors.Clear();
             SelectedFrame = null;
             SelectedGlass = null;
             SelectedOpening = null;
             FilterFireRated = false;
             FilterInsulated = false;
+            FilterAutoOpening = false;
             TargetWidthMm = 0;
             TargetHeightMm = 0;
         }

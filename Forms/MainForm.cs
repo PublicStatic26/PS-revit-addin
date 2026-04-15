@@ -140,7 +140,9 @@ namespace PSRevitAddin.Forms
         private Panel CreateVendorSection(string vendorName, List<VendorProduct> products, int width, int height)
         {
             const int headerH = 28;
+
             const int cardH = 190;
+
             const int cardGap = 4;
 
             Panel section = new Panel();
@@ -185,16 +187,19 @@ namespace PSRevitAddin.Forms
         /// </summary>
         private Panel CreateProductCard(VendorProduct product, int width)
         {
+
             int cardHeight = 190;
             const int rowH = 18;
             const int rowStride = 22; // rowH(18) + gap(4)
             const int startY = 8;
+
 
             Panel card = new Panel();
             card.Width = width;
             card.Height = cardHeight;
             card.BackColor = Color.WhiteSmoke;
             card.BorderStyle = BorderStyle.FixedSingle;
+
 
             // 1행: 제품명 (굵게)
             Label nameLabel = new Label();
@@ -261,6 +266,7 @@ namespace PSRevitAddin.Forms
             priceLabel.Text = "₩ " + product.UnitPrice.ToString("N0");
             priceLabel.Location = new Point(8, startY + rowStride * 7);
             priceLabel.Size = new Size(width - 16, rowH);
+
             priceLabel.TextAlign = ContentAlignment.MiddleRight;
             priceLabel.Font = new Font(this.Font, FontStyle.Bold);
             priceLabel.ForeColor = Color.DarkBlue;

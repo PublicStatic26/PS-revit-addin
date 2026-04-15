@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>x64</PlatformTarget>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="App.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="GenericExternalEventHandler.cs" />
+    <Compile Include="Utility.cs" />
+    <Compile Include="Forms\**\*.cs" />
+    <Compile Include="Models\**\*.cs" />
+    <Compile Include="Services\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Forms\MainForm.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>..\..\..\..\..\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>..\..\..\..\..\Program Files\Autodesk\Revit 2025\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <PropertyGroup>
+      <AddinContent>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;RevitAddIns&gt;
+  &lt;AddIn Type="Application"&gt;
+    &lt;Assembly&gt;$(TargetPath)&lt;/Assembly&gt;
+    &lt;FullClassName&gt;PS_revit_addin.App&lt;/FullClassName&gt;
+    &lt;ClientId&gt;721cb7cd-ca0e-4312-9df8-ed4a4516f8a0&lt;/ClientId&gt;
+    &lt;Name&gt;PS_revit_addin&lt;/Name&gt;
+    &lt;VendorId&gt;DEVX&lt;/VendorId&gt;
+    &lt;VendorDescription&gt;Dev-X&lt;/VendorDescription&gt;
+  &lt;/AddIn&gt;
+&lt;/RevitAddIns&gt;</AddinContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(TargetDir)$(ProjectName).addin" Lines="$(AddinContent)" Overwrite="true" Encoding="UTF-8" />
+    <Message Text="Generated .addin file: $(TargetDir)$(ProjectName).addin" Importance="high" />
+  </Target>
+</Project>

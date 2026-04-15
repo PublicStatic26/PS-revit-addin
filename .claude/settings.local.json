@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Local Server/SAVE/**)",
+      "Read(//c/Local Server/SAVE/SAVE/**)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)",
+      "Bash(gh pr:*)",
+      "Bash(winget install:*)",
+      "Bash(powershell -command \"Start-Process 'https://github.com/PublicStatic26/PS-revit-addin/compare/main...feature/db-query?expand=1'\")"
+    ]
+  }
+}
