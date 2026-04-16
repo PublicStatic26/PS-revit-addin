@@ -23,6 +23,11 @@
     <EmbeddedResource Include="Forms\MainForm.resx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="창호DB.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="RevitAPI">
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2025\RevitAPI.dll</HintPath>
     </Reference>
