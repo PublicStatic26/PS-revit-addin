@@ -73,7 +73,7 @@ namespace PSRevitAddin.Services
             var textNotes = new FilteredElementCollector(_doc, _doc.ActiveView.Id)
                 .OfClass(typeof(TextNote))
                 .Cast<TextNote>()
-                .Where(x => x.TextNoteType.Name.Contains("최종도면-돋움체-10"))
+                .Where(x => x.TextNoteType.Name.Contains("최종도면-돋움체-35"))
 
                 .ToList();
 

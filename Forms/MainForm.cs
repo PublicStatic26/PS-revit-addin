@@ -68,6 +68,7 @@ namespace PSRevitAddin.Forms
         private void InitializeComboBoxes()
         {
             // 창호 프레임 (FrameType 순서와 일치)
+            comboBox1.Items.Add("선택안함");
             comboBox1.Items.Add("알루미늄 (Aluminum)");
             comboBox1.Items.Add("AL + PVC");
             comboBox1.Items.Add("PVC");
@@ -76,6 +77,7 @@ namespace PSRevitAddin.Forms
             comboBox1.Items.Add("한식창");
 
             // 유리 종류 (GlassType 순서와 일치)
+            comboBox2.Items.Add("선택안함");
             comboBox2.Items.Add("진공유리");
             comboBox2.Items.Add("삼중유리");
             comboBox2.Items.Add("복층유리");
@@ -85,6 +87,7 @@ namespace PSRevitAddin.Forms
             comboBox2.Items.Add("일반유리");
 
             // 개폐 방식 (OpeningMethod 순서와 일치)
+            comboBox3.Items.Add("선택안함");
             comboBox3.Items.Add("고정(Fix)창");
             comboBox3.Items.Add("프로젝트창");
             comboBox3.Items.Add("여닫이창");
@@ -416,11 +419,45 @@ namespace PSRevitAddin.Forms
                 {
                     Document doc = app.ActiveUIDocument.Document;
                     ParameterUpdater updater = new ParameterUpdater(doc);
-                    productToApply.SymbolCode = selectedTypeName;
-                    updater.UpdateFamilyType(
-                        new List<VendorProduct> { productToApply },
-                        widthMm,
-                        heightMm);
+
+                    List<VendorProduct> products;
+                    if (selectedTypeName == "모든 창호 유형 선택")
+                    {
+                        // 모든 WINDOW-어셈블 유형에 선택한 제품 적용
+                        var symbolNames = new FilteredElementCollector(doc)
+                            .OfClass(typeof(FamilySymbol))
+                            .Cast<FamilySymbol>()
+                            .Where(s => s.FamilyName == "WINDOW-어셈블")
+                            .Select(s => s.Name)
+                            .ToList();
+
+                        products = symbolNames.Select(name => new VendorProduct
+                        {
+                            SymbolCode    = name,
+                            VendorName    = productToApply.VendorName,
+                            ProductName   = productToApply.ProductName,
+                            ModelNumber   = productToApply.ModelNumber,
+                            MinWidthMm    = productToApply.MinWidthMm,
+                            MaxWidthMm    = productToApply.MaxWidthMm,
+                            MinHeightMm   = productToApply.MinHeightMm,
+                            MaxHeightMm   = productToApply.MaxHeightMm,
+                            IsFireRated   = productToApply.IsFireRated,
+                            IsInsulated   = productToApply.IsInsulated,
+                            IsAutoOpening = productToApply.IsAutoOpening,
+                            GlassType     = productToApply.GlassType,
+                            FrameType     = productToApply.FrameType,
+                            OpeningMethod = productToApply.OpeningMethod,
+                            FamilyPath    = productToApply.FamilyPath,
+                            UnitPrice     = productToApply.UnitPrice,
+                        }).ToList();
+                    }
+                    else
+                    {
+                        productToApply.SymbolCode = selectedTypeName;
+                        products = new List<VendorProduct> { productToApply };
+                    }
+
+                    updater.UpdateFamilyType(products, widthMm, heightMm);
                 };
 
                 _externalEvent?.Raise();
@@ -486,8 +523,8 @@ namespace PSRevitAddin.Forms
             // 창호 프레임 조건
             try
             {
-                _productFilter.SelectedFrame = comboBox1.SelectedIndex >= 0
-                    ? (FrameType?)comboBox1.SelectedIndex
+                _productFilter.SelectedFrame = comboBox1.SelectedIndex > 0
+                    ? (FrameType?)(comboBox1.SelectedIndex - 1)
                     : null;
                 RefreshProductCards();
             }
@@ -502,8 +539,8 @@ namespace PSRevitAddin.Forms
             // 유리 종류 조건
             try
             {
-                _productFilter.SelectedGlass = comboBox2.SelectedIndex >= 0
-                    ? (GlassType?)comboBox2.SelectedIndex
+                _productFilter.SelectedGlass = comboBox2.SelectedIndex > 0
+                    ? (GlassType?)(comboBox2.SelectedIndex - 1)
                     : null;
                 RefreshProductCards();
             }
@@ -518,8 +555,8 @@ namespace PSRevitAddin.Forms
             // 창호 개폐방식 조건
             try
             {
-                _productFilter.SelectedOpening = comboBox3.SelectedIndex >= 0
-                    ? (OpeningMethod?)comboBox3.SelectedIndex
+                _productFilter.SelectedOpening = comboBox3.SelectedIndex > 0
+                    ? (OpeningMethod?)(comboBox3.SelectedIndex - 1)
                     : null;
                 RefreshProductCards();
             }
