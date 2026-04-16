@@ -1,4 +1,4 @@
-using Autodesk.Revit.ApplicationServices;
+﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using PSRevitAddin.Models;
@@ -38,9 +38,7 @@ namespace PSRevitAddin.Forms
             _eventHandler = new GenericExternalEventHandler();
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
-            _catalog = new ProductCatalog(Path.Combine(
-    Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-    "창호DB.xlsx"));
+            _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
             _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
             LoadWindowTypes();
@@ -183,6 +181,7 @@ namespace PSRevitAddin.Forms
             header.ForeColor = Color.White;
             header.TextAlign = ContentAlignment.MiddleLeft;
             header.Padding = new Padding(8, 0, 0, 0);
+
             section.Controls.Add(header);
 
             // 제품 카드 스크롤 영역
@@ -234,13 +233,14 @@ namespace PSRevitAddin.Forms
             nameLabel.Font = new Font(this.Font, FontStyle.Bold);
             card.Controls.Add(nameLabel);
 
-            // 2행: 단열 / 방화 / 전동개폐 여부
-            string insulated = product.IsInsulated ? "단열 ✔" : "단열 ✘";
-            string fireRated = product.IsFireRated ? "방화 ✔" : "방화 ✘";
-            string autoOpen = product.IsAutoOpening ? "전동개폐 ✔" : "전동개폐 ✘";
+            // 2행: 체크된 특성만 표시
+            List<string> badges = new List<string>();
+            if (product.IsInsulated) badges.Add("단열");
+            if (product.IsFireRated) badges.Add("방화");
+            if (product.IsAutoOpening) badges.Add("전동개폐");
 
             Label badgeLabel = new Label();
-            badgeLabel.Text = insulated + "  " + fireRated + "  " + autoOpen;
+            badgeLabel.Text = badges.Count > 0 ? string.Join("  ", badges) : "";
             badgeLabel.Location = new Point(8, startY + rowStride * 1);
             badgeLabel.Size = new Size(width - 16, rowH);
             badgeLabel.ForeColor = Color.DimGray;
@@ -784,85 +784,20 @@ namespace PSRevitAddin.Forms
 
         private void button4_Click(object sender, EventArgs e)
         {
-            try
+            // Import DB: 선택한 창호 유형의 치수를 Revit에서 읽어 카드뷰 필터링
+            if (comboBox7.SelectedIndex < 0)
             {
-                if (comboBox7.SelectedIndex < 0)
-                {
-                    MessageBox.Show("창호유형을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (_selectedProduct == null)
-                {
-                    MessageBox.Show("제품을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                string selectedTypeName = comboBox7.SelectedItem?.ToString() ?? "";
-                if (string.IsNullOrEmpty(selectedTypeName)) return;
-
-                bool applyAll = selectedTypeName == "모든 창호 유형 선택";
-                var productToApply = _selectedProduct;
-
-                DozeOff();
-                _eventHandler.ActionToExecute = (app) =>
-                {
-                    Document doc = app.ActiveUIDocument.Document;
-                    var updater = new ParameterUpdater(doc);
-
-                    if (applyAll)
-                    {
-                        // WINDOW-어셈블의 모든 유형에 적용
-                        var allTypes = new FilteredElementCollector(doc)
-                            .OfClass(typeof(FamilySymbol))
-                            .Cast<FamilySymbol>()
-                            .Where(s => s.FamilyName == "WINDOW-어셈블")
-                            .Select(s => s.Name)
-                            .ToList();
-
-                        var products = allTypes.Select(typeName =>
-                        {
-                            var p = new VendorProduct
-                            {
-                                SymbolCode = typeName,
-                                VendorName = productToApply.VendorName,
-                                ProductName = productToApply.ProductName,
-                                ModelNumber = productToApply.ModelNumber,
-                                OpeningMethod = productToApply.OpeningMethod,
-                                IsFireRated = productToApply.IsFireRated,
-                                IsInsulated = productToApply.IsInsulated,
-                                GlassType = productToApply.GlassType,
-                                FrameType = productToApply.FrameType,
-                                MinWidthMm = productToApply.MinWidthMm,
-                                MaxWidthMm = productToApply.MaxWidthMm,
-                                MinHeightMm = productToApply.MinHeightMm,
-                                MaxHeightMm = productToApply.MaxHeightMm,
-                                UnitPrice = productToApply.UnitPrice,
-                            };
-                            return p;
-                        }).ToList();
-
-                        updater.UpdateFamilyType(products);
-                    }
-                    else
-                    {
-                        productToApply.SymbolCode = selectedTypeName;
-                        updater.UpdateFamilyType([productToApply]);
-                    }
-                };
-
-                _externalEvent?.Raise();
-                System.Threading.Thread.Sleep(100);
-                MessageBox.Show("파라미터 적용 완료!", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("창호 유형을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                WakeUp();
-            }
+
+            comboBox7_SelectedIndexChanged(sender, e);
+
+            string selectedType = comboBox7.SelectedItem?.ToString() ?? "";
+            if (selectedType == "모든 창호 유형 선택")
+                MessageBox.Show("치수 조건이 초기화되어 전체 제품이 표시됩니다.", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                MessageBox.Show($"{selectedType}\nW {textBox1.Text} × H {textBox2.Text} mm 조건으로 필터링되었습니다.", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 

@@ -83,17 +83,18 @@
             SuspendLayout();
             // 
             // button1
-            // 
-            button1.Location = new Point(872, 516);
+            //
+            button1.Location = new Point(872, 161);
+
             button1.Name = "button1";
             button1.Size = new Size(93, 23);
             button1.TabIndex = 0;
             button1.Text = "삭제예정";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
-            // 
+            //
             // button2
-            // 
+            //
             button2.Location = new Point(872, 47);
             button2.Name = "button2";
             button2.Size = new Size(93, 23);
