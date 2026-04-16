@@ -73,7 +73,6 @@
             dataGridView1 = new DataGridView();
             button3 = new Button();
             button4 = new Button();
-            checkBox8 = new CheckBox();
             button5 = new Button();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
@@ -83,18 +82,17 @@
             SuspendLayout();
             // 
             // button1
-            //
+            // 
             button1.Location = new Point(872, 161);
-
             button1.Name = "button1";
             button1.Size = new Size(93, 23);
             button1.TabIndex = 0;
-            button1.Text = "삭제예정";
+            button1.Text = "Finish";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
-            //
+            // 
             // button2
-            //
+            // 
             button2.Location = new Point(872, 47);
             button2.Name = "button2";
             button2.Size = new Size(93, 23);
@@ -184,7 +182,7 @@
             tabControl1.Size = new Size(866, 582);
             tabControl1.TabIndex = 14;
             tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
-            //
+            // 
             // tabPage1
             // 
             tabPage1.Controls.Add(label12);
@@ -541,20 +539,11 @@
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
-            button4.Text = "Finish";
+            button4.Text = "Import DB";
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
-            // checkBox8
-            // 
-            checkBox8.AutoSize = true;
-            checkBox8.Location = new Point(872, 491);
-            checkBox8.Name = "checkBox8";
-            checkBox8.Size = new Size(74, 19);
-            checkBox8.TabIndex = 32;
-            checkBox8.Text = "벽체생성";
-            checkBox8.UseVisualStyleBackColor = true;
-            // 
+            //
             // button5
             // 
             button5.Location = new Point(872, 18);
@@ -571,7 +560,6 @@
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(975, 582);
             Controls.Add(button5);
-            Controls.Add(checkBox8);
             Controls.Add(button3);
             Controls.Add(button4);
             Controls.Add(tabControl1);
@@ -637,7 +625,6 @@
         private FlowLayoutPanel flowLayoutPanel1;
         private Button button4;
         private Label label12;
-        private CheckBox checkBox8;
         private Button button5;
     }
 }
