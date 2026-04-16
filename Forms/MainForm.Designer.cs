@@ -181,7 +181,8 @@
             tabControl1.SelectedIndex = 0;
             tabControl1.Size = new Size(866, 582);
             tabControl1.TabIndex = 14;
-            // 
+            tabControl1.SelectedIndexChanged += tabControl1_SelectedIndexChanged;
+            //
             // tabPage1
             // 
             tabPage1.Controls.Add(label12);
@@ -519,6 +520,7 @@
             dataGridView1.Name = "dataGridView1";
             dataGridView1.Size = new Size(858, 554);
             dataGridView1.TabIndex = 15;
+            dataGridView1.CellContentClick += dataGridView1_CellContentClick;
             // 
             // button3
             // 

@@ -33,6 +33,17 @@ namespace PSRevitAddin.Services
             { FrameType.CurtainWall, "커튼월" },
         };
 
+        private static readonly Dictionary<OpeningMethod, string> OpeningNames = new Dictionary<OpeningMethod, string>
+        {
+            { OpeningMethod.Fixed,           "고정(Fix)창" },
+            { OpeningMethod.ProjectOut,      "프로젝트창" },
+            { OpeningMethod.CasementSwing,   "여닫이창" },
+            { OpeningMethod.Sliding,         "슬라이딩창" },
+            { OpeningMethod.TurnTilt,        "턴앤틸트창" },
+            { OpeningMethod.LiftSliding,     "리프트슬라이딩창" },
+            { OpeningMethod.ParallelSliding, "패러럴슬라이딩창" },
+        };
+
         public ParameterUpdater(Document doc)
         {
             _doc = doc;
@@ -98,7 +109,7 @@ namespace PSRevitAddin.Services
                     symbol.LookupParameter("회사명")?.Set(product.VendorName);
                     symbol.LookupParameter("제품명")?.Set(product.ProductName);
                     symbol.LookupParameter("모델번호")?.Set(product.ModelNumber);
-                    symbol.LookupParameter("개폐방식")?.Set(product.OpeningMethod.ToString());
+                    symbol.LookupParameter("개폐방식")?.Set(OpeningNames.TryGetValue(product.OpeningMethod, out var openingName) ? openingName : product.OpeningMethod.ToString());
 
                     // ── 예/아니오 파라미터 ───────────────────────────────────
                     symbol.LookupParameter("방화")?.Set(product.IsFireRated ? 1 : 0);

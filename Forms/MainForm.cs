@@ -37,7 +37,7 @@ namespace PSRevitAddin.Forms
             _eventHandler = new GenericExternalEventHandler();
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
-            _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
+            _catalog = new ProductCatalog(@"C:\Local Server\PS-revit-addin\창호DB.xlsx");
             _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
             LoadWindowTypes();
@@ -849,6 +849,91 @@ namespace PSRevitAddin.Forms
             }
         }
 
-        
+        private void checkBox8_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        // ─── Utility 탭 — 창호일람표 ────────────────────────────────────────
+
+        /// <summary>
+        /// 고정창(Fixed) 여부를 판별한다. 고정창 = 개폐 불가(N), 나머지 = 개폐 가능(Y)
+        /// </summary>
+        private static bool IsOpenable(string openingMethod)
+        {
+            string v = openingMethod.Trim();
+            return !(v == "Fixed" || v == "고정(Fix)창" || v == "고정창");
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // tabPage3(Utility)는 index 2
+            if (tabControl1.SelectedIndex == 2)
+                LoadWindowSchedule();
+        }
+
+        private void LoadWindowSchedule()
+        {
+            try
+            {
+                _eventHandler.ActionToExecute = (app) =>
+                {
+                    var manager = new ScheduleManager();
+                    var rows = manager.GetWindowSchedule(app.ActiveUIDocument.Document);
+                    this.Invoke(new Action(() => PopulateScheduleGrid(rows)));
+                };
+                _externalEvent?.Raise();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void PopulateScheduleGrid(List<WindowScheduleRow> rows)
+        {
+            dataGridView1.Columns.Clear();
+            dataGridView1.Rows.Clear();
+
+            dataGridView1.Columns.Add("SymbolCode",    "일람표기호");
+            dataGridView1.Columns.Add("VendorName",    "회사명");
+            dataGridView1.Columns.Add("ProductName",   "제품명");
+            dataGridView1.Columns.Add("ModelNumber",   "모델번호");
+            dataGridView1.Columns.Add("WidthMm",       "폭(mm)");
+            dataGridView1.Columns.Add("HeightMm",      "높이(mm)");
+            dataGridView1.Columns.Add("IsFireRated",   "방화");
+            dataGridView1.Columns.Add("IsInsulated",   "단열");
+            dataGridView1.Columns.Add("OpeningMethod", "개폐방식");
+            dataGridView1.Columns.Add("GlassMaterial", "유리");
+            dataGridView1.Columns.Add("FrameMaterial", "프레임");
+            dataGridView1.Columns.Add("SillHeightMm",  "씰 높이(mm)");
+            dataGridView1.Columns.Add("UnitPrice",     "단가(원)");
+
+            foreach (var row in rows)
+            {
+                dataGridView1.Rows.Add(
+                    row.SymbolCode,
+                    row.VendorName,
+                    row.ProductName,
+                    row.ModelNumber,
+                    row.WidthMm.ToString("0"),
+                    row.HeightMm.ToString("0"),
+                    row.IsFireRated ? "✔" : "✘",
+                    row.IsInsulated ? "✔" : "✘",
+                    IsOpenable(row.OpeningMethod) ? "Y" : "N",
+                    row.GlassMaterial,
+                    row.FrameMaterial,
+                    row.SillHeightMm.ToString("0"),
+                    row.UnitPrice.ToString("N0")
+                );
+            }
+
+            dataGridView1.AutoResizeColumns();
+        }
     }
 }
