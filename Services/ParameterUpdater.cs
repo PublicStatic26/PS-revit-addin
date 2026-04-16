@@ -57,8 +57,23 @@ namespace PSRevitAddin.Services
 
         // ── 메인 ────────────────────────────────────────────────────────────
 
-        // 그래스호퍼가 생성한 WINDOW-어셈블 유형(WD-01, WD-02...)을 찾아 파라미터 값만 적용한다.
-        public void UpdateFamilyType(List<VendorProduct> products)
+        /// <summary>
+        /// WINDOW-어셈블 유형(WD-01, WD-02...)을 찾아 제품 파라미터를 적용한다.
+        ///
+        /// [targetWidthMm / targetHeightMm 선택적 파라미터 안내]
+        /// 기본값은 0이며, 두 가지 호출 방식이 있다.
+        ///
+        /// 방식 A — 파라미터 없이 호출 (기존 방식, 기존 코드 그대로 작동)
+        ///   updater.UpdateFamilyType(products);
+        ///   → 폭/높이에 제품의 최대치수(MaxWidthMm, MaxHeightMm)가 입력된다.
+        ///
+        /// 방식 B — CAD 실치수 전달 (⑤ 제품 선택 완료 후 Finish 버튼에서 호출)
+        ///   updater.UpdateFamilyType(products, window.WidthMm, window.HeightMm);
+        ///   → 폭/높이에 CAD 도면에서 읽어온 실제 창호 치수가 입력된다.
+        ///   → 제품의 최소/최대 치수는 별도 파라미터(최소 폭, 최소 높이)에 그대로 기록된다.
+        /// </summary>
+        public void UpdateFamilyType(List<VendorProduct> products,
+            double targetWidthMm = 0, double targetHeightMm = 0)
         {
             using (var trans = new Transaction(_doc, "창호 파라미터 적용"))
             {
@@ -90,8 +105,11 @@ namespace PSRevitAddin.Services
                     symbol.LookupParameter("단열")?.Set(product.IsInsulated ? 1 : 0);
 
                     // ── 치수 파라미터 (feet → mm 변환) ──────────────────────
-                    symbol.LookupParameter("폭")?.Set(product.MaxWidthMm / 304.8);
-                    symbol.LookupParameter("높이")?.Set(product.MaxHeightMm / 304.8);
+                    // 폭/높이: CAD 실치수가 전달되면 그 값 사용, 없으면 제품 최대치수로 대체
+                    double w = targetWidthMm > 0 ? targetWidthMm : product.MaxWidthMm;
+                    double h = targetHeightMm > 0 ? targetHeightMm : product.MaxHeightMm;
+                    symbol.LookupParameter("폭")?.Set(w / 304.8);
+                    symbol.LookupParameter("높이")?.Set(h / 304.8);
                     symbol.LookupParameter("최소 폭")?.Set(product.MinWidthMm / 304.8);
                     symbol.LookupParameter("최소 높이")?.Set(product.MinHeightMm / 304.8);
 

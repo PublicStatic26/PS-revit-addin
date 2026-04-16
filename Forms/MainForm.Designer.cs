@@ -82,11 +82,11 @@ namespace PSRevitAddin.Forms
             // 
             // button1
             // 
-            button1.Location = new Point(872, 547);
+            button1.Location = new Point(872, 161);
             button1.Name = "button1";
             button1.Size = new Size(93, 23);
             button1.TabIndex = 0;
-            button1.Text = "button1";
+            button1.Text = "Finish";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -534,9 +534,7 @@ namespace PSRevitAddin.Forms
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
-
             button4.Text = "Import DB";
-
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
