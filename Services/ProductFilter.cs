@@ -53,6 +53,8 @@ namespace PSRevitAddin.Services
         /// <summary>창호/문 높이 (mm). 제품의 Min~Max 범위 안에 들어야 통과.</summary>
         public double TargetHeightMm { get; set; }
 
+        public double TargetsillHeightMm { get; set; }
+
         // ─── 핵심 메서드 ──────────────────────────────────────────────
 
         /// <summary>
@@ -143,6 +145,7 @@ namespace PSRevitAddin.Services
             FilterAutoOpening = false;
             TargetWidthMm = 0;
             TargetHeightMm = 0;
+            TargetsillHeightMm = 0;
         }
     }
 }
