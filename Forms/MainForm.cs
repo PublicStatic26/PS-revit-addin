@@ -232,13 +232,14 @@ namespace PSRevitAddin.Forms
             nameLabel.Font = new Font(this.Font, FontStyle.Bold);
             card.Controls.Add(nameLabel);
 
-            // 2행: 단열 / 방화 / 전동개폐 여부
-            string insulated = product.IsInsulated ? "단열 ✔" : "단열 ✘";
-            string fireRated = product.IsFireRated ? "방화 ✔" : "방화 ✘";
-            string autoOpen = product.IsAutoOpening ? "전동개폐 ✔" : "전동개폐 ✘";
+            // 2행: 체크된 특성만 표시
+            List<string> badges = new List<string>();
+            if (product.IsInsulated) badges.Add("단열");
+            if (product.IsFireRated) badges.Add("방화");
+            if (product.IsAutoOpening) badges.Add("전동개폐");
 
             Label badgeLabel = new Label();
-            badgeLabel.Text = insulated + "  " + fireRated + "  " + autoOpen;
+            badgeLabel.Text = badges.Count > 0 ? string.Join("  ", badges) : "";
             badgeLabel.Location = new Point(8, startY + rowStride * 1);
             badgeLabel.Size = new Size(width - 16, rowH);
             badgeLabel.ForeColor = Color.DimGray;
