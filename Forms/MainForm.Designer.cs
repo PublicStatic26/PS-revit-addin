@@ -1,4 +1,5 @@
-namespace PSRevitAddin.Forms
+
+﻿namespace PSRevitAddin.Forms
 {
     partial class MainForm
     {
@@ -549,7 +550,7 @@ namespace PSRevitAddin.Forms
             checkBox8.TabIndex = 32;
             checkBox8.Text = "벽체생성";
             checkBox8.UseVisualStyleBackColor = true;
-            checkBox8.CheckedChanged += checkBox8_CheckedChanged;
+            //checkBox8.CheckedChanged += checkBox8_CheckedChanged;
             // 
             // MainForm
             // 
@@ -562,6 +563,7 @@ namespace PSRevitAddin.Forms
             Controls.Add(tabControl1);
             Controls.Add(button2);
             Controls.Add(button1);
+            Controls.Add(button2);
             Name = "MainForm";
             Text = "PS 창호설계";
             FormClosing += MainForm_FormClosing;
@@ -624,5 +626,4 @@ namespace PSRevitAddin.Forms
         private Label label12;
         private CheckBox checkBox8;
     }
-
 }
