@@ -37,7 +37,9 @@ namespace PSRevitAddin.Forms
             _eventHandler = new GenericExternalEventHandler();
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
-            _catalog = new ProductCatalog(@"C:\Local Server\PS-revit-addin\창호DB.xlsx");
+            _catalog = new ProductCatalog(Path.Combine(
+    Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
+    "창호DB.xlsx"));
             _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
             LoadWindowTypes();
