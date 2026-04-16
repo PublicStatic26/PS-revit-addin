@@ -770,7 +770,19 @@ namespace PSRevitAddin.Forms
         private void button4_Click(object sender, EventArgs e)
         {
             // Import DB: 선택한 창호 유형의 치수를 Revit에서 읽어 카드뷰 필터링
+            if (comboBox7.SelectedIndex < 0)
+            {
+                MessageBox.Show("창호 유형을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             comboBox7_SelectedIndexChanged(sender, e);
+
+            string selectedType = comboBox7.SelectedItem?.ToString() ?? "";
+            if (selectedType == "모든 창호 유형 선택")
+                MessageBox.Show("치수 조건이 초기화되어 전체 제품이 표시됩니다.", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            else
+                MessageBox.Show($"{selectedType}\nW {textBox1.Text} × H {textBox2.Text} mm 조건으로 필터링되었습니다.", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
 
