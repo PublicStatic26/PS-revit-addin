@@ -1,4 +1,3 @@
-﻿
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -927,9 +926,6 @@ namespace PSRevitAddin.Forms
             }
         }
 
-private void checkBox8_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
+        
     }
 }

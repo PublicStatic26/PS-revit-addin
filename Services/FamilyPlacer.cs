@@ -47,7 +47,7 @@ namespace PSRevitAddin.Services
                 // 벽체 생성 (높이 3000mm = 약 9.84 feet)
                 foreach (var line in parsedData.WallCenterlines)
                 {
-                    Wall.Create(_doc, line, wallTypeId, defaultLevel.Id, 3000.0 / 304.8, 0, false, false);
+                    Wall.Create(_doc, line, wallTypeId, defaultLevel.Id, 4000.0 / 304.8, 0, false, false);
                 }
 
                 // [필수] 벽 생성 후 교차점 계산을 위해 DB 갱신
@@ -67,14 +67,15 @@ namespace PSRevitAddin.Services
                     .Cast<Wall>()
                     .ToList();
 
+                // 항상 "WINDOW-어셈블" 패밀리를 기준으로 사용 (없으면 defaultWindowSymbol)
+                FamilySymbol windowAssembleBase = allWindowSymbols.FirstOrDefault(s =>
+                    s.Family.Name == "WINDOW-어셈블" || s.Name == "WINDOW-어셈블")
+                    ?? defaultWindowSymbol;
+
                 foreach (var winData in parsedData.WindowDataList)
                 {
-                    // 마크와 일치하는 '원본 거푸집' 패밀리 찾기 (없으면 매개변수로 받은 기본 창호 사용)
-                    FamilySymbol baseSymbol = allWindowSymbols.FirstOrDefault(s =>
-                        s.Name == winData.Mark ||
-                        (s.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_MARK) != null &&
-                         s.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_MARK).AsString() == winData.Mark))
-                        ?? defaultWindowSymbol;
+                    // 항상 "WINDOW-어셈블" 패밀리를 기준으로 유형 복제
+                    FamilySymbol baseSymbol = windowAssembleBase;
 
                     if (baseSymbol == null) continue;
 
@@ -165,29 +166,58 @@ namespace PSRevitAddin.Services
                     {
                         Level winLevel = _doc.GetElement(hostwall.LevelId) as Level;
 
-                        // 씰높이만큼 Z축 오프셋 적용
-                        XYZ finalInsertPoint = new XYZ(insertPoint.X, insertPoint.Y, insertPoint.Z + winData.SillHeight);
+                        // 삽입점을 벽 중심선에 투영하되, 벽 끝에서 일정 거리 안쪽으로 클램핑
+                        XYZ projectedPoint = insertPoint;
+                        LocationCurve hostWallCurve = hostwall.Location as LocationCurve;
+                        if (hostWallCurve != null)
+                        {
+                            Curve wc = hostWallCurve.Curve;
+                            IntersectionResult proj = wc.Project(insertPoint);
+                            // 벽 파라미터 t: 0=시작, 1=끝. 끝에서 5% 안쪽으로 클램핑
+                            double t = proj.Parameter;
+                            double tNorm = (t - wc.GetEndParameter(0)) / (wc.GetEndParameter(1) - wc.GetEndParameter(0));
+
+                            // 디버그: 벽 범위 벗어난 창호 확인
+                            if (tNorm < 0.05 || tNorm > 0.95)
+                            {
+                                Autodesk.Revit.UI.TaskDialog.Show("범위 이탈 창호",
+                                    $"창호 '{winData.Mark}' 삽입점이 벽 끝 근처입니다.\n" +
+                                    $"tNorm = {tNorm:F3}\n" +
+                                    $"삽입점: ({insertPoint.X:F2}, {insertPoint.Y:F2})\n" +
+                                    $"벽 시작: ({wc.GetEndPoint(0).X:F2}, {wc.GetEndPoint(0).Y:F2})\n" +
+                                    $"벽 끝: ({wc.GetEndPoint(1).X:F2}, {wc.GetEndPoint(1).Y:F2})");
+                            }
+
+                            tNorm = Math.Max(0.05, Math.Min(0.95, tNorm));
+                            double tClamped = wc.GetEndParameter(0) + tNorm * (wc.GetEndParameter(1) - wc.GetEndParameter(0));
+                            XYZ safePoint = wc.Evaluate(tClamped, false);
+                            projectedPoint = new XYZ(safePoint.X, safePoint.Y, winLevel.Elevation);
+                        }
+                        else
+                        {
+                            projectedPoint = new XYZ(insertPoint.X, insertPoint.Y, winLevel.Elevation);
+                        }
 
                         FamilyInstance windowInst = _doc.Create.NewFamilyInstance(
-                            finalInsertPoint,
-                            targetSymbol, // 원본이 아닌 '복제본' 지정!
+                            projectedPoint,
+                            targetSymbol,
                             hostwall,
                             winLevel,
                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
-                        // 인스턴스 파라미터에도 씰높이 저장
+                        _doc.Regenerate();
+
+                        // 씰높이 인스턴스 파라미터
                         Parameter sillParam = windowInst.LookupParameter("Sill Height") 
                             ?? windowInst.LookupParameter("씰 높이")
                             ?? windowInst.LookupParameter("씰높이");
                         if (sillParam != null && !sillParam.IsReadOnly && winData.SillHeight > 0)
                             sillParam.Set(winData.SillHeight);
 
-                        // 인스턴스의 Mark(마크) 매개변수에도 값 넣어주기
+                        // Mark 파라미터
                         Parameter instMarkParam = windowInst.LookupParameter("Mark");
                         if (instMarkParam != null && !instMarkParam.IsReadOnly && !string.IsNullOrEmpty(winData.Mark))
-                        {
                             instMarkParam.Set(winData.Mark);
-                        }
                     }
                 }
 
