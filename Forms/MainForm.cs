@@ -385,29 +385,48 @@ namespace PSRevitAddin.Forms
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // Finish — 선택한 창호 유형에 선택한 제품 파라미터 적용
             try
             {
+                if (comboBox7.SelectedIndex < 0)
+                {
+                    MessageBox.Show("창호유형을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (_selectedProduct == null)
+                {
+                    MessageBox.Show("제품을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                string selectedTypeName = comboBox7.SelectedItem?.ToString() ?? "";
+                if (string.IsNullOrEmpty(selectedTypeName)) return;
+
+                double.TryParse(textBox1.Text, out double widthMm);
+                double.TryParse(textBox2.Text, out double heightMm);
+
+                VendorProduct productToApply = _selectedProduct;
+
                 DozeOff();
                 _eventHandler.ActionToExecute = (app) =>
                 {
                     Document doc = app.ActiveUIDocument.Document;
-                    using (Transaction trans = new Transaction(doc, "ex"))
-                    {
-                        trans.Start();
-                        TaskDialog.Show("Test", "이건머지?");
-                        trans.Commit();
-                    }
+                    ParameterUpdater updater = new ParameterUpdater(doc);
+                    productToApply.SymbolCode = selectedTypeName;
+                    updater.UpdateFamilyType(
+                        new List<VendorProduct> { productToApply },
+                        widthMm,
+                        heightMm);
                 };
 
-                // ExternalEvent 실행
                 _externalEvent?.Raise();
-                // 잠시 대기
                 System.Threading.Thread.Sleep(100);
+                MessageBox.Show("적용 완료!", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error applying colors:\n{ex.Message}",
-                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -647,7 +666,45 @@ namespace PSRevitAddin.Forms
 
         private void comboBox7_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // 창호 유형
+            // 창호 유형 선택 시 해당 FamilySymbol의 폭/높이를 읽어 textBox1/2에 자동 입력
+            // → TextChanged 이벤트가 연쇄 실행되어 ProductFilter + 카드 목록 자동 갱신
+            try
+            {
+                if (comboBox7.SelectedIndex < 0) return;
+
+                string selectedTypeName = comboBox7.SelectedItem?.ToString() ?? "";
+
+                // "모든 창호 유형 선택"이면 치수 초기화
+                if (selectedTypeName == "모든 창호 유형 선택")
+                {
+                    textBox1.Text = "0";
+                    textBox2.Text = "0";
+                    return;
+                }
+
+                // Revit에서 해당 FamilySymbol 찾기 (LoadWindowTypes와 동일한 패턴)
+                FamilySymbol symbol = new FilteredElementCollector(_doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .FirstOrDefault(s => s.FamilyName == "WINDOW-어셈블"
+                                      && s.Name == selectedTypeName);
+
+                if (symbol == null) return;
+
+                // 폭/높이 파라미터 읽기 (Revit 내부 단위 feet → mm 변환)
+                Parameter widthParam = symbol.LookupParameter("폭");
+                Parameter heightParam = symbol.LookupParameter("높이");
+
+                if (widthParam != null)
+                    textBox1.Text = (widthParam.AsDouble() * 304.8).ToString("0");
+
+                if (heightParam != null)
+                    textBox2.Text = (heightParam.AsDouble() * 304.8).ToString("0");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void textBox5_TextChanged(object sender, EventArgs e)
