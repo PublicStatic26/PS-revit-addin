@@ -74,6 +74,7 @@
             button3 = new Button();
             button4 = new Button();
             checkBox8 = new CheckBox();
+            button5 = new Button();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -83,11 +84,11 @@
             // 
             // button1
             // 
-            button1.Location = new Point(872, 161);
+            button1.Location = new Point(872, 516);
             button1.Name = "button1";
             button1.Size = new Size(93, 23);
             button1.TabIndex = 0;
-            button1.Text = "Finish";
+            button1.Text = "삭제예정";
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
@@ -248,15 +249,15 @@
             // label14
             // 
             label14.AutoSize = true;
-            label14.Location = new Point(10, 128);
+            label14.Location = new Point(10, 188);
             label14.Name = "label14";
-            label14.Size = new Size(14, 15);
+            label14.Size = new Size(43, 15);
             label14.TabIndex = 32;
-            label14.Text = "b";
+            label14.Text = "씰높이";
             // 
             // textBox5
             // 
-            textBox5.Location = new Point(10, 146);
+            textBox5.Location = new Point(10, 206);
             textBox5.Name = "textBox5";
             textBox5.Size = new Size(100, 23);
             textBox5.TabIndex = 31;
@@ -307,15 +308,15 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(10, 172);
+            label5.Location = new Point(10, 134);
             label5.Name = "label5";
-            label5.Size = new Size(14, 15);
+            label5.Size = new Size(31, 15);
             label5.TabIndex = 17;
-            label5.Text = "h";
+            label5.Text = "세로";
             // 
             // textBox2
             // 
-            textBox2.Location = new Point(10, 190);
+            textBox2.Location = new Point(10, 152);
             textBox2.Name = "textBox2";
             textBox2.Size = new Size(100, 23);
             textBox2.TabIndex = 16;
@@ -328,9 +329,10 @@
             label4.AutoSize = true;
             label4.Location = new Point(10, 81);
             label4.Name = "label4";
-            label4.Size = new Size(16, 15);
+            label4.Size = new Size(31, 15);
             label4.TabIndex = 15;
-            label4.Text = "w";
+            label4.Text = "가로";
+            label4.Click += label4_Click;
             // 
             // textBox1
             // 
@@ -528,6 +530,7 @@
             button3.TabIndex = 31;
             button3.Text = "Create Door";
             button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
             // 
             // button4
             // 
@@ -535,31 +538,40 @@
             button4.Name = "button4";
             button4.Size = new Size(93, 23);
             button4.TabIndex = 15;
-            button4.Text = "Import DB";
+            button4.Text = "Finish";
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
             // checkBox8
             // 
             checkBox8.AutoSize = true;
-            checkBox8.Location = new Point(872, 23);
+            checkBox8.Location = new Point(872, 491);
             checkBox8.Name = "checkBox8";
             checkBox8.Size = new Size(74, 19);
             checkBox8.TabIndex = 32;
             checkBox8.Text = "벽체생성";
             checkBox8.UseVisualStyleBackColor = true;
-            //checkBox8.CheckedChanged += checkBox8_CheckedChanged;
+            // 
+            // button5
+            // 
+            button5.Location = new Point(872, 18);
+            button5.Name = "button5";
+            button5.Size = new Size(93, 23);
+            button5.TabIndex = 33;
+            button5.Text = "Create Wall";
+            button5.UseVisualStyleBackColor = true;
+            button5.Click += button5_Click_1;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(975, 582);
+            Controls.Add(button5);
             Controls.Add(checkBox8);
             Controls.Add(button3);
             Controls.Add(button4);
             Controls.Add(tabControl1);
-            Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(button2);
             Name = "MainForm";
@@ -623,5 +635,6 @@
         private Button button4;
         private Label label12;
         private CheckBox checkBox8;
+        private Button button5;
     }
 }

@@ -26,6 +26,7 @@ namespace PSRevitAddin.Forms
         private readonly ProductCatalog _catalog;
         private List<VendorProduct> _allProducts = new List<VendorProduct>();
         private VendorProduct? _selectedProduct = null;
+        private CadParseResult? _parsedData = null;
 
         private static readonly string[] VendorNames = { "Eagon", "LX Z:IN", "Jinheung" };
 
@@ -677,8 +678,9 @@ namespace PSRevitAddin.Forms
                 // "모든 창호 유형 선택"이면 치수 초기화
                 if (selectedTypeName == "모든 창호 유형 선택")
                 {
-                    textBox1.Text = "0";
+                    textBox1.Text = "0";    //너비
                     textBox2.Text = "0";
+                    textBox5.Text = "0";
                     return;
                 }
 
@@ -694,12 +696,16 @@ namespace PSRevitAddin.Forms
                 // 폭/높이 파라미터 읽기 (Revit 내부 단위 feet → mm 변환)
                 Parameter widthParam = symbol.LookupParameter("폭");
                 Parameter heightParam = symbol.LookupParameter("높이");
+                Parameter sillHeightParam = symbol.LookupParameter("기본 씰 높이");
 
                 if (widthParam != null)
                     textBox1.Text = (widthParam.AsDouble() * 304.8).ToString("0");
 
                 if (heightParam != null)
                     textBox2.Text = (heightParam.AsDouble() * 304.8).ToString("0");
+
+                if (sillHeightParam != null)
+                    textBox5.Text = (sillHeightParam.AsDouble() * 304.8).ToString("0");
             }
             catch (Exception ex)
             {
@@ -709,7 +715,16 @@ namespace PSRevitAddin.Forms
 
         private void textBox5_TextChanged(object sender, EventArgs e)
         {
-            // b
+            try
+            {
+                bool isValid = double.TryParse(textBox5.Text, out double sillHeight);
+                _productFilter.TargetHeightMm = isValid && sillHeight > 0 ? sillHeight : 0;
+                RefreshProductCards();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("오류:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void checkBox7_CheckedChanged(object sender, EventArgs e)
@@ -857,6 +872,11 @@ namespace PSRevitAddin.Forms
 
         }
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void button2_Click_1(object sender, EventArgs e)
         {
             try
@@ -864,20 +884,18 @@ namespace PSRevitAddin.Forms
                 DozeOff();
                 _eventHandler.ActionToExecute = (app) =>
                 {
-                    UIDocument uiDoc = app.ActiveUIDocument;
-                    Document doc = uiDoc.Document;
+                    Document doc = app.ActiveUIDocument.Document;
 
-                    // 1. 프로젝트 내 기본 창호 패밀리 로드 (필수)
                     var defaultWindowSymbol = new FilteredElementCollector(doc)
                         .OfCategory(BuiltInCategory.OST_Windows)
                         .OfClass(typeof(FamilySymbol))
                         .Cast<FamilySymbol>()
-                        .FirstOrDefault(s => s.Name == "WINDOW-어셈블") ?? // "WINDOW-어셈블" 우선 검색
+                        .FirstOrDefault(s => s.Name == "WINDOW-어셈블") ??
                         new FilteredElementCollector(doc)
                         .OfCategory(BuiltInCategory.OST_Windows)
                         .OfClass(typeof(FamilySymbol))
                         .Cast<FamilySymbol>()
-                        .FirstOrDefault(); // 없으면 첫 번째 창호
+                        .FirstOrDefault();
 
                     if (defaultWindowSymbol == null)
                     {
@@ -885,34 +903,32 @@ namespace PSRevitAddin.Forms
                         return;
                     }
 
-                    // 2. 도면 파싱 실행 (PickObject 없이 바로 스캔)
-                    CadParser parser = new CadParser(doc); // 주의: 클래스 멤버 _doc 대신 지역 변수 doc 사용
-                    CadParseResult parsedData = parser.ParseAllCadData();
+                    // 파싱 데이터가 없으면 (Create Wall 없이 단독 실행 시) 새로 파싱
+                    if (_parsedData == null)
+                    {
+                        CadParser parser = new CadParser(doc);
+                        _parsedData = parser.ParseAllCadData();
+                    }
 
-                    // 파싱된 데이터가 없는 경우 방어 로직 (사용자가 분해를 안 했을 때)
-                    if (parsedData.WallCenterlines.Count == 0 && parsedData.WindowDataList.Count == 0)
+                    if (_parsedData.WindowDataList.Count == 0)
                     {
                         System.Windows.Forms.MessageBox.Show(
-                            "추출된 도면 데이터가 없습니다.\n\n캐드 도면을 클릭하고 '부분 분해(Partial Explode)'를 먼저 실행해 주세요.",
+                            "인식된 창호 데이터가 없습니다.\n\n캐드 도면을 '부분 분해(Partial Explode)' 후 다시 시도해 주세요.",
                             "알림"
                         );
                         return;
                     }
 
-                    // 3. 3D 모델 자동 배치 실행
-                    // (FamilyPlacer 내부에 Transaction이 있으므로 밖에서 using Transaction 안 씀!)
                     FamilyPlacer placer = new FamilyPlacer(doc);
-                    placer.ExecutePlacement(parsedData, defaultWindowSymbol);
+                    placer.PlaceWindows(_parsedData, defaultWindowSymbol);
 
                     System.Windows.Forms.MessageBox.Show(
-                        $"작업 완료!\n\n- 인식된 벽체 선: {parsedData.WallCenterlines.Count}개\n- 배치된 창호: {parsedData.WindowDataList.Count}개",
+                        $"창호 배치 완료!\n\n- 배치된 창호: {_parsedData.WindowDataList.Count}개",
                         "성공"
                     );
                 };
 
-                // ExternalEvent 실행
                 _externalEvent?.Raise();
-                // 잠시 대기
                 System.Threading.Thread.Sleep(100);
             }
             catch (Exception ex)
@@ -925,6 +941,58 @@ namespace PSRevitAddin.Forms
             }
         }
 
-        
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button5_Click_1(object sender, EventArgs e)
+        {
+            try
+            {
+                DozeOff();
+                _eventHandler.ActionToExecute = (app) =>
+                {
+                    Document doc = app.ActiveUIDocument.Document;
+
+                    CadParser parser = new CadParser(doc);
+                    _parsedData = parser.ParseAllCadData();
+
+                    if (_parsedData.WallCenterlines.Count == 0)
+                    {
+                        System.Windows.Forms.MessageBox.Show(
+                            "인식된 벽체 중심선이 없습니다.\n\n캐드 도면을 '부분 분해(Partial Explode)' 후 다시 시도해 주세요.",
+                            "알림"
+                        );
+                        return;
+                    }
+
+                    FamilyPlacer placer = new FamilyPlacer(doc);
+                    placer.PlaceWalls(_parsedData);
+
+                    System.Windows.Forms.MessageBox.Show(
+                        $"벽체 생성 완료!\n\n- 생성된 벽체: {_parsedData.WallCenterlines.Count}개",
+                        "성공"
+                    );
+                };
+
+                _externalEvent?.Raise();
+                System.Threading.Thread.Sleep(100);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"오류 발생:\n{ex.Message}", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            }
+            finally
+            {
+                WakeUp();
+            }
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

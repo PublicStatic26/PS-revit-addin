@@ -23,18 +23,14 @@ namespace PSRevitAddin.Services
         /// <summary>
         /// CAD 파싱 데이터를 받아 벽체와 창호를 자동으로 배치합니다.
         /// </summary>
-        public void ExecutePlacement(CadParseResult parsedData, FamilySymbol defaultWindowSymbol)
+        public void PlaceWalls(CadParseResult parsedData)
         {
-            using (Transaction trans = new Transaction(_doc, "벽체 및 창호 자동 생성"))
+            using (Transaction trans = new Transaction(_doc, "벽체 자동 생성"))
             {
                 trans.Start();
 
-                // ==========================================
-                // 1. 벽체 생성
-                // ==========================================
                 Level defaultLevel = _doc.ActiveView.GenLevel;
 
-                // "일반 - 200mm" 벽 유형을 찾기, 없으면 기본 벽 유형 사용
                 WallType wallType200mm = new FilteredElementCollector(_doc)
                     .OfClass(typeof(WallType))
                     .Cast<WallType>()
@@ -44,17 +40,23 @@ namespace PSRevitAddin.Services
                     ? wallType200mm.Id
                     : _doc.GetDefaultElementTypeId(ElementTypeGroup.WallType);
 
-                // 벽체 생성 (높이 3000mm = 약 9.84 feet)
                 foreach (var line in parsedData.WallCenterlines)
                 {
                     Wall.Create(_doc, line, wallTypeId, defaultLevel.Id, 4000.0 / 304.8, 0, false, false);
                 }
 
-                // [필수] 벽 생성 후 교차점 계산을 위해 DB 갱신
-                _doc.Regenerate();
+                trans.Commit();
+            }
+        }
+
+        public void PlaceWindows(CadParseResult parsedData, FamilySymbol defaultWindowSymbol)
+        {
+            using (Transaction trans = new Transaction(_doc, "창호 자동 배치"))
+            {
+                trans.Start();
 
                 // ==========================================
-                // 2. 창호 생성 및 배치
+                // 창호 생성 및 배치
                 // ==========================================
                 var allWindowSymbols = new FilteredElementCollector(_doc)
                     .OfCategory(BuiltInCategory.OST_Windows)
@@ -83,15 +85,13 @@ namespace PSRevitAddin.Services
                     // 🌟 [핵심] 치수에 맞게 새로운 유형 복제 (Duplicate) 🌟
                     // ---------------------------------------------------------
 
-                    // mm 단위로 변환해서 직관적인 새 유형 이름 만들기 (예: "W1500_H2000")
+                    // 유형 이름: 유형마크만 사용 (없으면 치수로 대체)
                     double widthMm = winData.Width * 304.8;
                     double heightMm = winData.Height * 304.8;
-                    string newTypeName = $"W{widthMm:0}_H{heightMm:0}";
-
-                    if (!string.IsNullOrEmpty(winData.Mark))
-                    {
-                        newTypeName = $"{winData.Mark}_{newTypeName}"; // 예: "BPW_W1500_H2000"
-                    }
+                    double sillMm = winData.SillHeight * 304.8;
+                    string newTypeName = !string.IsNullOrEmpty(winData.Mark)
+                        ? winData.Mark
+                        : (sillMm > 0 ? $"W{widthMm:0}_H{heightMm:0}_S{sillMm:0}" : $"W{widthMm:0}_H{heightMm:0}");
 
                     // 같은 Family 내에서 방금 지은 이름의 유형이 이미 있는지 확인
                     FamilySymbol targetSymbol = null;
