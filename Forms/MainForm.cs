@@ -768,85 +768,8 @@ namespace PSRevitAddin.Forms
 
         private void button4_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (comboBox7.SelectedIndex < 0)
-                {
-                    MessageBox.Show("창호유형을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                if (_selectedProduct == null)
-                {
-                    MessageBox.Show("제품을 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                string selectedTypeName = comboBox7.SelectedItem?.ToString() ?? "";
-                if (string.IsNullOrEmpty(selectedTypeName)) return;
-
-                bool applyAll = selectedTypeName == "모든 창호 유형 선택";
-                var productToApply = _selectedProduct;
-
-                DozeOff();
-                _eventHandler.ActionToExecute = (app) =>
-                {
-                    Document doc = app.ActiveUIDocument.Document;
-                    var updater = new ParameterUpdater(doc);
-
-                    if (applyAll)
-                    {
-                        // WINDOW-어셈블의 모든 유형에 적용
-                        var allTypes = new FilteredElementCollector(doc)
-                            .OfClass(typeof(FamilySymbol))
-                            .Cast<FamilySymbol>()
-                            .Where(s => s.FamilyName == "WINDOW-어셈블")
-                            .Select(s => s.Name)
-                            .ToList();
-
-                        var products = allTypes.Select(typeName =>
-                        {
-                            var p = new VendorProduct
-                            {
-                                SymbolCode = typeName,
-                                VendorName = productToApply.VendorName,
-                                ProductName = productToApply.ProductName,
-                                ModelNumber = productToApply.ModelNumber,
-                                OpeningMethod = productToApply.OpeningMethod,
-                                IsFireRated = productToApply.IsFireRated,
-                                IsInsulated = productToApply.IsInsulated,
-                                GlassType = productToApply.GlassType,
-                                FrameType = productToApply.FrameType,
-                                MinWidthMm = productToApply.MinWidthMm,
-                                MaxWidthMm = productToApply.MaxWidthMm,
-                                MinHeightMm = productToApply.MinHeightMm,
-                                MaxHeightMm = productToApply.MaxHeightMm,
-                                UnitPrice = productToApply.UnitPrice,
-                            };
-                            return p;
-                        }).ToList();
-
-                        updater.UpdateFamilyType(products);
-                    }
-                    else
-                    {
-                        productToApply.SymbolCode = selectedTypeName;
-                        updater.UpdateFamilyType([productToApply]);
-                    }
-                };
-
-                _externalEvent?.Raise();
-                System.Threading.Thread.Sleep(100);
-                MessageBox.Show("파라미터 적용 완료!", "완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"오류:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                WakeUp();
-            }
+            // Import DB: 선택한 창호 유형의 치수를 Revit에서 읽어 카드뷰 필터링
+            comboBox7_SelectedIndexChanged(sender, e);
         }
 
 
