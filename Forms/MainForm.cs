@@ -933,10 +933,6 @@ namespace PSRevitAddin.Forms
 
         }
 
-        private void checkBox8_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
