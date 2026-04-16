@@ -73,7 +73,7 @@ namespace PSRevitAddin.Services
             var textNotes = new FilteredElementCollector(_doc, _doc.ActiveView.Id)
                 .OfClass(typeof(TextNote))
                 .Cast<TextNote>()
-                .Where(x => x.TextNoteType.Name.Contains("최종도면-돋움체-6"))
+                .Where(x => x.TextNoteType.Name.Contains("최종도면-돋움체-8"))
                 .ToList();
 
             // 반경 내 텍스트 검색 기준 (Revit 내부 단위: feet, 3m = 약 9.84ft)

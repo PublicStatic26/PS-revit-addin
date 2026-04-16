@@ -1,4 +1,4 @@
-using Autodesk.Revit.ApplicationServices;
+﻿using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using PSRevitAddin.Models;
@@ -37,9 +37,7 @@ namespace PSRevitAddin.Forms
             _eventHandler = new GenericExternalEventHandler();
             _externalEvent = ExternalEvent.Create(_eventHandler);
             _productFilter = new ProductFilter();
-            _catalog = new ProductCatalog(Path.Combine(
-    Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? "",
-    "창호DB.xlsx"));
+            _catalog = new ProductCatalog(@"Z:\5조\창호DB.xlsx");
             _allProducts = _catalog.GetAllProducts();
             InitializeComboBoxes();
             LoadWindowTypes();
@@ -182,6 +180,7 @@ namespace PSRevitAddin.Forms
             header.ForeColor = Color.White;
             header.TextAlign = ContentAlignment.MiddleLeft;
             header.Padding = new Padding(8, 0, 0, 0);
+
             section.Controls.Add(header);
 
             // 제품 카드 스크롤 영역
