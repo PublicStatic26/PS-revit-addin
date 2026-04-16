@@ -219,19 +219,42 @@ namespace PSRevitAddin.Services
             foreach (var kv in rows)
             {
                 if (kv.Key == 1) continue;
-                var cell = FindCell(kv.Value, 11, ns);
+                var cell = FindCell(kv.Value, 13, ns);
                 string val = CellStr(cell, sharedStrings, ns).ToUpper().Trim();
                 if (val == "LOW-E" || val == "LOWE" || val == "LOW E" || val == "로이" || val == "LOW_E")
-                    SetCellInlineStr(kv.Value, kv.Key, 11, "로이유리", sheetDoc, ns);
+                    SetCellInlineStr(kv.Value, kv.Key, 13, "로이유리", sheetDoc, ns);
             }
 
-            // 4. ③ 불필요한 행 수집 후 삭제
+            // 4. ③ 개폐방식 정규화 (영어 enum 이름 → 한국어)
+            var openingNormMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Fixed",           "고정(Fix)창" },
+                { "ProjectOut",      "프로젝트창" },
+                { "CasementSwing",   "여닫이창" },
+                { "Sliding",         "슬라이딩창" },
+                { "TurnTilt",        "턴앤틸트창" },
+                { "LiftSliding",     "리프트슬라이딩창" },
+                { "ParallelSliding", "패러럴슬라이딩창" },
+                { "고정창",          "고정(Fix)창" },
+                { "여닫이",          "여닫이창" },
+                { "프로젝트",        "프로젝트창" },
+            };
+            foreach (var kv in rows)
+            {
+                if (kv.Key == 1) continue;
+                var cell = FindCell(kv.Value, 5, ns);
+                string val = CellStr(cell, sharedStrings, ns).Trim();
+                if (openingNormMap.TryGetValue(val, out string? normalized) && normalized != null)
+                    SetCellInlineStr(kv.Value, kv.Key, 5, normalized, sheetDoc, ns);
+            }
+
+            // 5. ④ 불필요한 행 수집 후 삭제
             var toDelete = new List<XmlNode>();
             foreach (var kv in rows)
             {
                 if (kv.Key == 1) continue;
                 string productName = CellStr(FindCell(kv.Value, 3, ns), sharedStrings, ns);
-                double maxWidth = CellDbl(FindCell(kv.Value, 6, ns), sharedStrings, ns);
+                double maxWidth = CellDbl(FindCell(kv.Value, 7, ns), sharedStrings, ns);
                 if (string.IsNullOrEmpty(productName) || maxWidth <= 500)
                     toDelete.Add(kv.Value);
             }
@@ -289,26 +312,26 @@ namespace PSRevitAddin.Services
                 string vendorName = CellStr(FindCell(row, 2, ns), ss, ns);
                 if (!string.IsNullOrEmpty(vendorName)) lastVendorName = vendorName;
 
-                double maxWidth = CellDbl(FindCell(row, 6, ns), ss, ns);
+                double maxWidth = CellDbl(FindCell(row, 7, ns), ss, ns);
                 if (maxWidth <= 500) continue;
 
                 list.Add(new VendorProduct
                 {
-                    SymbolCode = CellStr(FindCell(row, 1, ns), ss, ns),
-                    VendorName = lastVendorName,
-                    ProductName = productName,
-                    ModelNumber = CellStr(FindCell(row, 4, ns), ss, ns),
-                    MinWidthMm = CellDbl(FindCell(row, 5, ns), ss, ns),
-                    MaxWidthMm = maxWidth,
-                    MinHeightMm = CellDbl(FindCell(row, 7, ns), ss, ns),
-                    MaxHeightMm = CellDbl(FindCell(row, 8, ns), ss, ns),
-                    IsFireRated = CellStr(FindCell(row, 9, ns), ss, ns).ToUpper() == "Y",
-                    IsInsulated = CellStr(FindCell(row, 10, ns), ss, ns).ToUpper() == "Y",
-                    GlassType = ParseGlass(CellStr(FindCell(row, 11, ns), ss, ns)),
-                    FrameType = ParseFrame(CellStr(FindCell(row, 12, ns), ss, ns)),
-                    OpeningMethod = ParseOpening(CellStr(FindCell(row, 13, ns), ss, ns)),
-                    FamilyPath = CellStr(FindCell(row, 14, ns), ss, ns),
-                    UnitPrice = CellDec(FindCell(row, 15, ns), ss, ns),
+                    SymbolCode    = CellStr(FindCell(row,  1, ns), ss, ns),
+                    VendorName    = lastVendorName,
+                    ProductName   = productName,
+                    ModelNumber   = CellStr(FindCell(row,  4, ns), ss, ns),
+                    OpeningMethod = ParseOpening(CellStr(FindCell(row, 5, ns), ss, ns)),
+                    MinWidthMm    = CellDbl(FindCell(row,  6, ns), ss, ns),
+                    MaxWidthMm    = maxWidth,
+                    MinHeightMm   = CellDbl(FindCell(row,  8, ns), ss, ns),
+                    MaxHeightMm   = CellDbl(FindCell(row,  9, ns), ss, ns),
+                    IsFireRated   = CellStr(FindCell(row, 10, ns), ss, ns).ToUpper() == "Y",
+                    IsInsulated   = CellStr(FindCell(row, 11, ns), ss, ns).ToUpper() == "Y",
+                    IsAutoOpening = CellStr(FindCell(row, 12, ns), ss, ns).ToUpper() == "Y",
+                    GlassType     = ParseGlass(CellStr(FindCell(row, 13, ns), ss, ns)),
+                    FrameType     = ParseFrame(CellStr(FindCell(row, 14, ns), ss, ns)),
+                    UnitPrice     = CellDec(FindCell(row, 15, ns), ss, ns),
                 });
             }
             return list;
@@ -318,11 +341,14 @@ namespace PSRevitAddin.Services
 
         private static OpeningMethod ParseOpening(string val) => val switch
         {
-            "고정창"       => OpeningMethod.Fixed,
-            "프로젝트"     => OpeningMethod.ProjectOut,
-            "여닫이"       => OpeningMethod.CasementSwing,
-            "슬라이딩"     => OpeningMethod.Sliding,
-            "턴앤틸트"     => OpeningMethod.TurnTilt,
+            "고정(Fix)창"   => OpeningMethod.Fixed,
+            "고정창"        => OpeningMethod.Fixed,
+            "여닫이창"      => OpeningMethod.CasementSwing,
+            "여닫이"        => OpeningMethod.CasementSwing,
+            "프로젝트창"    => OpeningMethod.ProjectOut,
+            "프로젝트"      => OpeningMethod.ProjectOut,
+            "슬라이딩"      => OpeningMethod.Sliding,
+            "턴앤틸트"      => OpeningMethod.TurnTilt,
             "리프트슬라이딩" => OpeningMethod.LiftSliding,
             "패러럴슬라이딩" => OpeningMethod.ParallelSliding,
             _ => OpeningMethod.Fixed
@@ -330,11 +356,14 @@ namespace PSRevitAddin.Services
 
         private static FrameType ParseFrame(string val) => val switch
         {
-            "AL+PVC" => FrameType.AlPvc,
-            "PVC"    => FrameType.Pvc,
-            "복합"    => FrameType.Combination,
-            "커튼월"  => FrameType.CurtainWall,
-            "한식창"  => FrameType.Traditional,
+            "AL + PVC"              => FrameType.AlPvc,
+            "AL+PVC"                => FrameType.AlPvc,
+            "PVC"                   => FrameType.Pvc,
+            "복합 (Combination)"    => FrameType.Combination,
+            "복합"                  => FrameType.Combination,
+            "커튼월 (Curtain Wall)" => FrameType.CurtainWall,
+            "커튼월"                => FrameType.CurtainWall,
+            "한식창"                => FrameType.Traditional,
             _ => FrameType.Aluminum
         };
 
