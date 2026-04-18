@@ -301,7 +301,7 @@ BPW             → 마크만 (치수는 별도 텍스트에서 파싱)
 
 | 환경 | 용도 |
 |---|---|
-| Mac M2 + VSCode + Claude Code | 로직 작성, 코드 리뷰, Git 관리 |
+| Mac + VSCode + Claude Code | 로직 작성, 코드 리뷰, Git 관리 |
 | Windows PC + Visual Studio | WinForm Designer, Revit 빌드·테스트 |
 
 > WinForm 이벤트는 반드시 **Visual Studio Designer에서만** 생성합니다.  
