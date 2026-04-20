@@ -321,6 +321,4 @@ BPW             → 마크만 (치수는 별도 텍스트에서 파싱)
 
 <br><br>
 
-## 라이선스
 
-This project is developed for academic and portfolio purposes.
